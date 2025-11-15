@@ -1,4 +1,4 @@
-# CLI Conversion Plan for 2ND BRAIN
+# CLI Conversion Plan for Second Brain
 
 ## Current State Analysis
 
