@@ -3,6 +3,7 @@
 ## Current State Analysis
 
 **Current Features:**
+
 - ✅ CLI framework implemented with Spectre.Console.Cli
 - ✅ Dependency injection architecture integrated
 - ✅ Configuration via appsettings.json with CLI settings
@@ -42,12 +43,14 @@
 - ✅ Model configuration in appsettings.json
 
 **Current Limitations:**
+
 - ⚠️ Document management commands partially implemented (delete, stats)
   - list: ✅ Implemented with tree structure
   - delete: Not yet implemented
   - stats: Not yet implemented
 
 **Current Implementation Status:**
+
 - ✅ **Phase 1: Foundation** - COMPLETED
   - Spectre.Console packages installed (v0.49.0)
   - Command structure created (`Commands/` folder)
@@ -112,6 +115,7 @@ Note: 'serve' command will be implemented in a future phase
 ### Detailed Command Specifications
 
 #### 0. `version` Command ✅ IMPLEMENTED
+
 ```bash
 2b version [options]
 2b v [options]  # Alias
@@ -129,6 +133,7 @@ Examples:
 ```
 
 #### 1. `sync` Command ✅ IMPLEMENTED
+
 ```bash
 2b sync [options]
 
@@ -141,7 +146,7 @@ Description:
   Syncs documents from the configured folder (or --folder override) to the knowledge base.
   By default, only syncs files that have been added or modified since the last sync.
   Uses StoredLastRun file to track last sync time.
-  
+
 Features:
   - Filters files by LastWriteTimeUtc (only files modified since last run)
   - Shows progress bar during sync (Spectre.Console)
@@ -157,6 +162,7 @@ Examples:
 ```
 
 #### 2. `query` Command ✅ IMPLEMENTED
+
 ```bash
 2b query <question> [options]
 
@@ -185,6 +191,7 @@ Examples:
 ```
 
 #### 3. `ragchat` Command ✅ IMPLEMENTED (renamed from 'chat')
+
 ```bash
 2b ragchat [options]
 
@@ -215,6 +222,7 @@ Examples:
 ```
 
 #### 4. `llm` Command ✅ IMPLEMENTED
+
 ```bash
 2b llm [options]
 
@@ -246,6 +254,7 @@ Examples:
 ```
 
 #### 5. `status` Command ✅ IMPLEMENTED
+
 ```bash
 2b status [options]
 
@@ -253,7 +262,7 @@ Output:
   - Knowledge base information (index name, accessibility status)
   - Sync information (last sync time, sync state file, document folder)
   - Configuration summary (RAG settings, CLI settings)
-  
+
 Note: Output uses Spectre.Console tables for beautiful, formatted display
 
 Examples:
@@ -261,6 +270,7 @@ Examples:
 ```
 
 #### 6. `config` Command ✅ IMPLEMENTED
+
 ```bash
 2b config [options]
 
@@ -282,6 +292,7 @@ Examples:
 ```
 
 #### 7. `list` Command ✅ IMPLEMENTED
+
 ```bash
 2b list [options]
 
@@ -310,6 +321,7 @@ Examples:
 ```
 
 #### 8. `tree` Command ✅ IMPLEMENTED
+
 ```bash
 2b tree [options]
 
@@ -334,6 +346,7 @@ Examples:
 ```
 
 #### 9. `delete` Command
+
 ```bash
 2b delete <document-id> [options]
 
@@ -349,6 +362,7 @@ Examples:
 ```
 
 #### 10. `stats` Command
+
 ```bash
 2b stats [options]
 
@@ -361,7 +375,7 @@ Output:
   - Storage size
   - Average document size
   - Index health
-  
+
 Note: Output will use Spectre.Console tables for formatted statistics display
 
 Examples:
@@ -370,6 +384,7 @@ Examples:
 ```
 
 #### 11. `help` Command
+
 ```bash
 2b help [command]
 
@@ -391,6 +406,7 @@ Examples:
 **Note:** Spectre.Console provides built-in help support. The `help` command provides an explicit way to access help, but `--help` and `-h` flags work on all commands automatically.
 
 #### 12. `serve` Command (Future Phase)
+
 ```bash
 2b serve [options]
 
@@ -401,7 +417,7 @@ Options:
 Description:
   Runs as a background service with Quartz scheduler active.
   Similar to current behavior but can be controlled better.
-  
+
 Note: This command will be implemented in a future phase, not in initial implementation.
 
 Examples:
@@ -414,12 +430,14 @@ Examples:
 ## Benefits of CLI Conversion
 
 ### 1. **Flexibility & Control**
+
 - ✅ Run specific operations without starting full app
 - ✅ One-shot queries for scripting/automation
 - ✅ Better control over when sync happens
 - ✅ Can be integrated into workflows and pipelines
 
 ### 2. **Scriptability & Automation**
+
 - ✅ Can be called from batch files, PowerShell scripts
 - ✅ Easy integration with task schedulers (Windows Task Scheduler, cron)
 - ✅ Can be used in CI/CD pipelines
@@ -431,6 +449,7 @@ Examples:
   ```
 
 ### 3. **Better User Experience**
+
 - ✅ Clear command structure with help text
 - ✅ Built-in help command and --help flags on all commands
 - ✅ Rich console UI with tables, panels, and formatted output (with Spectre.Console)
@@ -439,12 +458,14 @@ Examples:
 - ✅ Human-readable output format with colors and styling
 
 ### 4. **Development & Debugging**
+
 - ✅ Easier to test individual features
 - ✅ Better separation of concerns
 - ✅ Can add commands incrementally
 - ✅ Easier to add new features as commands
 
 ### 5. **Production Readiness**
+
 - ✅ Health checks via `status` command
 - ✅ Better monitoring capabilities
 - ✅ Can be containerized more easily
@@ -452,12 +473,14 @@ Examples:
 - ✅ Service mode (`serve` command) planned for future phase
 
 ### 6. **Integration Opportunities**
+
 - ✅ Can be called from other applications
 - ✅ Can be wrapped in REST API later
 - ✅ Can be used in webhooks
 - ✅ Better for headless environments
 
 ### 7. **Configuration Management**
+
 - ✅ CLI-based config management
 - ✅ Environment variable support
 - ✅ Multiple config file support
@@ -468,14 +491,18 @@ Examples:
 ## Technical Implementation Plan
 
 ### Phase 1: Foundation ✅ COMPLETED
+
 1. **✅ Add Spectre.Console NuGet package**
+
    ```xml
    <PackageReference Include="Spectre.Console" Version="0.49.0" />
    <PackageReference Include="Spectre.Console.Cli" Version="0.49.0" />
    ```
+
    - Packages installed and working
 
 2. **✅ Create Command Structure**
+
    - ✅ `Commands/` folder created
    - ✅ BaseSettings class implemented (inherits from `CommandSettings`)
    - ✅ Base command handler pattern established (inherit from `Command<TSettings>`)
@@ -483,6 +510,7 @@ Examples:
    - ✅ CommandApp routing configured in ServiceCollectionExtensions.AddCommandApp()
 
 3. **✅ Refactor Program.cs**
+
    - ✅ Program.cs refactored to use CommandApp with DI
    - ✅ Configuration loading from appsettings.json
    - ✅ Service collection setup with AddRAGKnowledgeBase() and AddCommandApp()
@@ -499,6 +527,7 @@ Examples:
    - ✅ Registered in DI container and CommandApp
 
 ### Phase 2: Core Commands ✅ COMPLETED
+
 1. **✅ Implement `sync` command** (Priority 1) - COMPLETED
    - ✅ SyncCommand created with SyncSettings
    - ✅ Command options implemented (--folder, --force, --dry-run)
@@ -514,7 +543,9 @@ Examples:
 **Note:** `query` and `status` commands will be implemented in subsequent phases.
 
 ### Phase 3: Additional Commands ✅ COMPLETED
+
 1. **✅ Implement `query` command** (Priority 1) - COMPLETED
+
    - ✅ Extracted RagChatService query logic
    - ✅ Support one-shot queries
    - ✅ Human-readable output with Spectre.Console
@@ -525,6 +556,7 @@ Examples:
    - ✅ Registered in DI and CommandApp
 
 2. **✅ Implement `status` command** (Priority 2) - COMPLETED
+
    - ✅ Knowledge base information display
    - ✅ Sync information display
    - ✅ Configuration summary
@@ -532,6 +564,7 @@ Examples:
    - ✅ Registered in DI and CommandApp
 
 3. **✅ Implement `ragchat` command** (Priority 3) - COMPLETED
+
    - ✅ Moved chat loop logic from Program.cs to RagChatCommand
    - ✅ Conversation history support (in-memory)
    - ✅ Configurable context window (--context option)
@@ -557,13 +590,16 @@ Examples:
    - ✅ Registered in DI and CommandApp
 
 ### Phase 4: Advanced Commands (IN PROGRESS)
+
 1. **✅ Implement `config` command** - COMPLETED
+
    - ✅ Interactive configuration management
    - ✅ Menu-driven interface
    - ✅ Saves to source appsettings.json
    - ✅ Atomic file writes
 
 2. **✅ Implement `list` command** - COMPLETED
+
    - ✅ List all documents from folder
    - ✅ Show sync status (synced/not synced)
    - ✅ Tree structure with hierarchical organization
@@ -579,6 +615,7 @@ Examples:
    - ✅ Registered in DI and CommandApp
 
 3. **✅ Implement `tree` command** - COMPLETED
+
    - ✅ Display latest RAG sources and chunks as tree structure
    - ✅ RagResultService to store latest search results
    - ✅ QueryCommand and RagChatService store results after each query
@@ -589,11 +626,13 @@ Examples:
    - ✅ Registered in DI and CommandApp
 
 4. **⏳ Implement `delete` command** - PENDING
+
    - Document deletion from knowledge base
    - Safety confirmations
    - Batch deletion support
 
 5. **⏳ Implement `stats` command** - PENDING
+
    - Knowledge base analytics
    - Performance metrics
    - Document statistics
@@ -606,7 +645,9 @@ Examples:
    - ✅ Installation via `scoop install 2b`
 
 ### Phase 5: Polish & Cleanup ✅ COMPLETED
+
 1. **✅ Remove all icons/emojis** - COMPLETED
+
    - ✅ Removed checkmarks (✓) and crosses (✗) from command output
    - ✅ Replaced filled/empty circles (●, ○) with "H : on" and "H : off"
    - ✅ Replaced info (ℹ) with "info" and warning (⚠) with "warning"
@@ -614,6 +655,7 @@ Examples:
    - ✅ Commands updated: ListCommand, SyncCommand, ConfigCommand, StatusCommand, RagChatCommand, LlmCommand, DocumentEmbeddingService
 
 2. **✅ Fix tree command** - COMPLETED
+
    - ✅ Root cause: Each CLI command runs in a separate process, so singleton service doesn't persist
    - ✅ Solution: Modified RagResultService to persist results to file (`rag-results.json`)
    - ✅ Updated TreeCommand to use file-based storage instead of in-memory singleton
@@ -630,6 +672,7 @@ Examples:
    - ✅ Status updates immediately after sync operations
 
 ### Phase 6: Service Mode (Future)
+
 1. **Implement `serve` command** (Deferred)
    - Background service mode
    - Scheduler integration
@@ -637,7 +680,9 @@ Examples:
    - Note: Code structure will support this, but implementation deferred
 
 ### Phase 7: Additional Polish
+
 1. **Enhance Help System**
+
    - Comprehensive help text for each command
    - Examples in help output
    - Error message improvements
@@ -645,6 +690,7 @@ Examples:
    - Note: Basic help is available via Spectre.Console.Cli in Phase 1
 
 2. **Add Tab Completion**
+
    - Spectre.Console.Cli completion support
    - Shell integration (may require additional setup)
 
@@ -659,6 +705,7 @@ Examples:
 ## Architecture Changes
 
 ### Previous Architecture (Before CLI)
+
 ```
 Program.cs
   └─> Initialize Services
@@ -666,6 +713,7 @@ Program.cs
 ```
 
 ### Current Architecture ✅ IMPLEMENTED
+
 ```
 Program.cs
   └─> Build Configuration (appsettings.json)
@@ -708,6 +756,7 @@ Models/:
 ```
 
 ### Target Architecture (Future)
+
 ```
 Program.cs
   └─> Spectre.Console.Cli CommandApp
@@ -732,6 +781,7 @@ Each Command:
 ```
 
 ### Service Initialization Strategy
+
 - **Lazy Loading**: Only initialize services needed for specific command (CONFIRMED)
 - **Shared Services**: Common services (logging, config) initialized once
 - **Command-Specific**: Memory, chat service only when needed
@@ -743,6 +793,7 @@ Each Command:
 ## Example Usage Scenarios
 
 ### Scenario 1: Manual Document Sync
+
 ```bash
 # Current: Must start app, wait for initialization, manually trigger sync
 
@@ -752,6 +803,7 @@ Each Command:
 ```
 
 ### Scenario 2: Scheduled Sync
+
 ```bash
 # Current: Need to run full app or rely on Quartz scheduler
 
@@ -764,12 +816,14 @@ Register-ScheduledTask -Action (New-ScheduledTaskAction -Execute "2b.exe" -Argum
 ```
 
 ### Scenario 3: Quick Query (Future Phase)
+
 ```bash
 # CLI: Direct query
 2b query "What is X?"  # Instant result
 ```
 
 ### Scenario 4: Health Monitoring (Future Phase)
+
 ```bash
 # Check system health
 2b status --check-services
@@ -781,6 +835,7 @@ fi
 ```
 
 ### Scenario 5: Batch Operations
+
 ```bash
 # Sync multiple folders
 for folder in folder1 folder2 folder3; do
@@ -793,12 +848,14 @@ done
 ## Migration Path
 
 ### Backward Compatibility
+
 - All functionality via explicit commands
 - `2b ragchat` → RAG-based chat with knowledge base
 - `2b llm` → Direct LLM chat without RAG
 - All new functionality via commands
 
 ### Configuration
+
 - Support both appsettings.json and CLI arguments
 - CLI args override config file
 - Environment variables override both
@@ -808,15 +865,18 @@ done
 ## Future Enhancements (Post-CLI)
 
 1. **HTTP API Mode**
+
    - `2b api --port 8080`
    - REST endpoints for all commands
    - WebSocket for chat
 
 2. **Plugin System**
+
    - Custom commands via plugins
    - Extensibility
 
 3. **Export/Import**
+
    - `2b export`
    - `2b import <file>`
 
@@ -829,6 +889,7 @@ done
 ## Decision Points
 
 ### 1. CLI Library Choice
+
 - **Spectre.Console** (CONFIRMED)
   - ✅ Rich console UI capabilities (tables, panels, progress bars, prompts)
   - ✅ Built-in CLI framework via Spectre.Console.Cli
@@ -839,6 +900,7 @@ done
   - ✅ Supports dependency injection
 
 ### 2. Service Initialization
+
 - **Lazy initialization per command** (CONFIRMED)
   - ✅ Faster startup
   - ✅ Lower memory usage
@@ -846,10 +908,12 @@ done
   - Implementation: Use dependency injection with lazy resolution
 
 ### 3. Default Behavior
+
 - **Option A**: `2b` → chat (backward compatible) - CONFIRMED
 - Keeps existing workflow intact while adding new CLI capabilities
 
 ### 4. Output Format
+
 - **Human-readable text only** (CONFIRMED)
   - No JSON output options
   - Clean, readable console output
@@ -860,11 +924,13 @@ done
 ## Success Metrics
 
 1. **Performance**
+
    - Query command: < 2s startup time
    - Sync command: Same performance as current
    - Status command: < 1s execution
 
 2. **Usability**
+
    - All commands have help text
    - Clear error messages
    - Tab completion works
@@ -879,32 +945,38 @@ done
 ## Decisions Made
 
 1. **Command Name**: `2b` instead of `secondbrain` - ✅ CONFIRMED & IMPLEMENTED
+
    - Shorter, easier to type
    - Matches "2ND BRAIN" branding
    - Configured in AppSettings.CLI.ApplicationName
 
 2. **Output Format**: Human-readable text only - ✅ CONFIRMED & IMPLEMENTED
+
    - No JSON output options
    - Focus on clean console output
    - Spectre.Console formatting used in VersionCommand
 
 3. **Service Initialization**: Lazy loading - ✅ CONFIRMED & IMPLEMENTED
+
    - Only initialize services needed per command
    - Faster startup times
    - DI architecture supports lazy resolution via TypeResolver
 
 4. **Dependency Injection**: ✅ FULLY INTEGRATED
+
    - TypeRegistrar and TypeResolver implemented
    - Commands registered in DI container
    - Services available via constructor injection
    - CommandSettings handled by Spectre.Console (not DI)
 
 5. **Configuration Integration**: ✅ IMPLEMENTED
+
    - CLI settings in AppSettings.CLI (ApplicationName, ApplicationVersion, Author)
    - Commands read from IOptions<AppSettings>
    - VersionCommand demonstrates pattern
 
 6. **Phase 2 Implementation**: `sync` command - ✅ COMPLETED
+
    - Foundation complete (Phase 1)
    - Sync command fully implemented (Phase 2)
    - File filtering by last modified time working
@@ -918,6 +990,7 @@ done
 ## Questions to Consider
 
 1. **How to handle long-running operations?**
+
    - Progress bars? (Use Spectre.Console's Progress API - integrates well with existing DocumentEmbeddingService)
    - Cancellation support (Ctrl+C)? (Spectre.Console.Cli supports cancellation tokens)
 
@@ -930,6 +1003,7 @@ done
 ## Recommendation
 
 **Proceed with CLI conversion** - The benefits significantly outweigh the effort:
+
 - Better user experience
 - More flexible usage
 - Easier to maintain and extend
@@ -937,7 +1011,9 @@ done
 - Enables future enhancements
 
 **Implementation Status:**
+
 - ✅ **Phase 1: Foundation** - COMPLETED
+
   - Spectre.Console library integrated (Spectre.Console.Cli for CLI framework)
   - Dependency injection fully implemented
   - Lazy service initialization architecture in place
@@ -947,6 +1023,7 @@ done
   - Help system working (English locale)
 
 - ✅ **Phase 2: Sync Command** - COMPLETED
+
   - ✅ `sync` command fully implemented and working
   - ✅ Leverages Spectre.Console's progress bars for sync operations
   - ✅ Uses DocumentEmbeddingService via DI
@@ -955,6 +1032,7 @@ done
   - ✅ Clear output messages and dry-run support
 
 - ✅ **Phase 3: Additional Commands** - COMPLETED
+
   - ✅ `query` command implemented for one-shot queries
   - ✅ `status` command implemented for system status
   - ✅ `ragchat` command implemented with conversation history support and model selection (renamed from 'chat')
@@ -967,6 +1045,7 @@ done
   - ✅ HTTP request logging suppressed for cleaner output
 
 - ✅ **Phase 4: Advanced Commands** - COMPLETED
+
   - ✅ `config` command implemented with interactive menu
   - ✅ `list` command implemented with tree structure (statistics, file types, documents)
   - ✅ `tree` command implemented to display latest RAG sources and chunks
@@ -985,6 +1064,7 @@ done
   - ✅ Removed --quiet and --verbose options from all commands (simplified codebase, consistent output)
 
 **Key Achievements:**
+
 - ✅ Full DI integration with Spectre.Console.Cli
 - ✅ Configuration-driven CLI settings
 - ✅ Type-safe command structure
@@ -1011,4 +1091,3 @@ done
 - ✅ Cleanup phase completed (removed emojis, fixed tree command, fixed list command)
 - ✅ Removed --quiet and --verbose options (simplified codebase, ~50 lines of conditional code removed)
 - ⏳ Ready for remaining commands (delete, stats)
-
