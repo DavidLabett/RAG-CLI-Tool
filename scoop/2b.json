@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "description": "Second Brain - RAG Knowledge Base CLI",
+  "homepage": "https://github.com/yourusername/SecondBrain-CLI",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/yourusername/SecondBrain-CLI/releases/download/v1.0.0/SecondBrain-1.0.0-win-x64.zip",
+      "hash": "PLACEHOLDER_HASH_HERE",
+      "extract_dir": "SecondBrain-1.0.0-win-x64"
+    }
+  },
+  "bin": "SecondBrain.exe",
+  "shortcuts": [
+    [
+      "SecondBrain.exe",
+      "2ND BRAIN CLI"
+    ]
+  ],
+  "checkver": {
+    "github": "yourusername/SecondBrain-CLI"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/yourusername/SecondBrain-CLI/releases/download/v$version/SecondBrain-$version-win-x64.zip"
+      }
+    }
+  },
+  "notes": [
+    "Run '2b version' to verify installation",
+    "Configuration file: appsettings.json in the install directory"
+  ]
+}
+

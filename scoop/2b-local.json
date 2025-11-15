@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "description": "Second Brain - RAG Knowledge Base CLI (Local Development)",
+  "homepage": "https://github.com/yourusername/SecondBrain-CLI",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "file:///C:/Users/DavidL/source/repos/SecondBrain-CLI/releases/SecondBrain-1.0.0-win-x64.zip",
+      "hash": "PLACEHOLDER_HASH_HERE"
+    }
+  },
+  "bin": "SecondBrain.exe",
+  "notes": [
+    "This is a local development manifest.",
+    "Update the 'url' field to point to your local zip file.",
+    "Calculate the hash using: Get-FileHash <zip-file> -Algorithm SHA256"
+  ]
+}
+
