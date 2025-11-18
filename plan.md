@@ -679,26 +679,78 @@ Examples:
    - Graceful shutdown
    - Note: Code structure will support this, but implementation deferred
 
-### Phase 7: Additional Polish
+### Phase 7: Online Mode with CloudFlare Workers AI
 
-1. **Enhance Help System**
+1. **Implement CloudFlare Workers AI REST API Integration**
 
-   - Comprehensive help text for each command
-   - Examples in help output
-   - Error message improvements
-   - Rich formatted help output using Spectre.Console panels and tables
-   - Note: Basic help is available via Spectre.Console.Cli in Phase 1
+   - Create CloudFlareWorkersAIService for REST API communication
+   - Support for embedding generation via CloudFlare Workers AI
+   - Support for text generation (LLM) via CloudFlare Workers AI
+   - Configuration for CloudFlare API endpoint and authentication
+   - Add CloudFlare settings to appsettings.json (API token, account ID, model names)
 
-2. **Add Tab Completion**
+2. **Embedding Service Abstraction**
 
-   - Spectre.Console.Cli completion support
-   - Shell integration (may require additional setup)
+   - Create IEmbeddingService interface (or extend existing)
+   - Implement CloudFlareWorkersAIEmbeddingService
+   - Maintain backward compatibility with existing Ollama embedding service
+   - Add configuration option to switch between local (Ollama) and online (CloudFlare) modes
+   - Update DocumentEmbeddingService to use selected embedding provider
 
-3. **Testing & Documentation**
-   - Unit tests for commands
-   - Integration tests
-   - User documentation
-   - Leverage Spectre.Console's IAnsiConsole for testable console output
+3. **Generation Service Abstraction**
+
+   - Create IGenerationService interface (or extend existing)
+   - Implement CloudFlareWorkersAIGenerationService
+   - Maintain backward compatibility with existing Ollama generation service
+   - Add configuration option to switch between local (Ollama) and online (CloudFlare) modes
+   - Update RagChatService and LlmChatService to use selected generation provider
+
+4. **Configuration Management**
+
+   - Add "Online" mode configuration section to appsettings.json
+   - Support for CloudFlare API token and account ID
+   - Model selection for CloudFlare Workers AI (embedding and generation models)
+   - Mode selection (local/online/hybrid)
+   - Update ConfigCommand to allow editing online mode settings
+
+5. **Re-ranking Support (Future)**
+
+   - Plan for CloudFlare Workers AI re-ranking integration
+   - Add re-ranking service interface
+   - Configuration for re-ranking model selection
+   - Integration with query/ragchat commands for improved search results
+
+6. **Error Handling & Fallback**
+
+   - Network error handling for REST API calls
+   - Timeout configuration
+   - Retry logic for transient failures
+   - Fallback to local mode if online mode fails (optional)
+   - Clear error messages for API failures
+
+7. **Testing & Validation**
+
+   - Test CloudFlare Workers AI API integration
+   - Validate embedding quality and compatibility
+   - Validate generation quality and compatibility
+   - Performance testing (latency, throughput)
+   - Cost monitoring considerations
+
+**Configuration Example:**
+```json
+{
+  "RAG": {
+    "Mode": "online",  // "local" | "online" | "hybrid"
+    "CloudFlare": {
+      "ApiToken": "your-api-token",
+      "AccountId": "your-account-id",
+      "EmbeddingModel": "@cf/baai/bge-base-en-v1.5",
+      "GenerationModel": "@cf/meta/llama-3-8b-instruct",
+      "ReRankingModel": "@cf/..."  // Future
+    }
+  }
+}
+```
 
 ---
 
@@ -1062,6 +1114,15 @@ done
   - ✅ Fixed tree command (file-based persistence for cross-process results)
   - ✅ Fixed list command sync status (timestamp-based logic matching sync command)
   - ✅ Removed --quiet and --verbose options from all commands (simplified codebase, consistent output)
+
+- ⏳ **Phase 7: Online Mode with CloudFlare Workers AI** - NOT STARTED
+  - ⏳ CloudFlare Workers AI REST API integration
+  - ⏳ Embedding service abstraction for online mode
+  - ⏳ Generation service abstraction for online mode
+  - ⏳ Configuration management for online mode
+  - ⏳ Re-ranking support (future)
+  - ⏳ Error handling and fallback mechanisms
+  - ⏳ Testing and validation
 
 **Key Achievements:**
 
