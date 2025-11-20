@@ -13,18 +13,12 @@
   - Progress bars and clear output
   - Dry-run support
   - StoredLastRun tracking
-- ✅ Query command implemented
-  - One-shot queries with LLM answers
-  - Search results display with tables
-  - Configurable result limits
-  - Sources display option
-  - No-LLM mode for search-only results
 - ✅ Status command implemented
   - Knowledge base information
   - Sync information (last sync time, document folder)
   - Configuration summary
   - Formatted tables using Spectre.Console
-- ✅ RAG Chat command implemented (renamed from 'chat' to 'ragchat')
+- ✅ RAG Chat command implemented (renamed from 'chat' to 'ragchat' to 'rag')
   - Interactive chat session with knowledge base (RAG)
   - Conversation history support (in-memory)
   - Configurable context window
@@ -98,13 +92,13 @@
 Commands:
   version       Show version information ✅ (IMPLEMENTED)
   sync          Sync documents from folder to knowledge base ✅ (IMPLEMENTED)
-  query         Query the knowledge base (one-shot) ✅ (IMPLEMENTED)
   status        Check system status and health ✅ (IMPLEMENTED)
-  ragchat       Start interactive chat session with RAG ✅ (IMPLEMENTED - renamed from 'chat')
+  rag           Start interactive chat session with RAG ✅ (IMPLEMENTED - renamed from 'chat' to 'ragchat' to 'rag')
   llm           Start interactive chat session with direct LLM ✅ (IMPLEMENTED)
   config        Manage configuration ✅ (IMPLEMENTED)
   list          List documents in knowledge base ✅ (IMPLEMENTED)
   tree          Display latest RAG sources and chunks as tree ✅ (IMPLEMENTED)
+  mode          Switch between 'local' (Ollama) and 'online' (CloudFlare) modes ✅ (IMPLEMENTED)
   delete        Delete documents from knowledge base ⏳ (PENDING)
   stats         Show knowledge base statistics ⏳ (PENDING)
   help          Show help information (built-in) ✅ (BUILT-IN)
@@ -161,39 +155,10 @@ Examples:
   2b sync --dry-run                         # Preview what would be synced
 ```
 
-#### 2. `query` Command ✅ IMPLEMENTED
+#### 2. `rag` Command ✅ IMPLEMENTED (renamed from 'chat' to 'ragchat' to 'rag')
 
 ```bash
-2b query <question> [options]
-
-Options:
-  --limit <n>         Number of results to return (default: 5)
-  --sources           Include source document information
-  --no-llm            Only return search results, don't generate answer
-
-Description:
-  Queries the knowledge base with a question and returns an LLM-generated answer.
-  Can also return only search results without LLM processing.
-
-Features:
-  - One-shot queries (no interactive mode required)
-  - LLM answer generation using configured model
-  - Search results displayed in formatted tables
-  - Source document information available
-  - Beautiful output using Spectre.Console panels and tables
-  - Animated spinners during search and answer generation (matching ragchat experience)
-  - Stores results for display with `tree` command
-
-Examples:
-  2b query "What is the main topic?"
-  2b query "Explain X" --limit 10
-  2b query "Find Y" --no-llm --sources
-```
-
-#### 3. `ragchat` Command ✅ IMPLEMENTED (renamed from 'chat')
-
-```bash
-2b ragchat [options]
+2b rag [options]
 
 Options:
   --history           Enable conversation history to maintain context across messages
@@ -212,16 +177,17 @@ Features:
   - Styled prompt using Spectre.Console markup (shows model name)
   - Context-aware responses when history is enabled
   - Model selection via --model option or appsettings.json
+  - Stores results for display with `tree` command
 
 Examples:
-  2b ragchat                                  # Chat without history (uses RAG.TextModel.Model)
-  2b ragchat --history                        # Chat with history (default: 5 messages)
-  2b ragchat --history --context 10          # Chat with history (10 messages context)
-  2b ragchat --model "llama3:8b"             # Use specific model
-  2b ragchat --history --model "gemma3:4b"  # Chat with history and custom model
+  2b rag                                    # Chat without history (uses RAG.TextModel.Model)
+  2b rag --history                          # Chat with history (default: 5 messages)
+  2b rag --history --context 10            # Chat with history (10 messages context)
+  2b rag --model "llama3:8b"               # Use specific model
+  2b rag --history --model "gemma3:4b"    # Chat with history and custom model
 ```
 
-#### 4. `llm` Command ✅ IMPLEMENTED
+#### 3. `llm` Command ✅ IMPLEMENTED
 
 ```bash
 2b llm [options]
@@ -253,7 +219,7 @@ Examples:
   2b llm --history --model "gemma3:4b"    # LLM chat with history and custom model
 ```
 
-#### 5. `status` Command ✅ IMPLEMENTED
+#### 4. `status` Command ✅ IMPLEMENTED
 
 ```bash
 2b status [options]
@@ -269,14 +235,14 @@ Examples:
   2b status              # Show full status information
 ```
 
-#### 6. `config` Command ✅ IMPLEMENTED
+#### 5. `config` Command ✅ IMPLEMENTED
 
 ```bash
 2b config [options]
 
 Description:
   Interactive configuration management with menu-driven interface.
-  Allows editing RAG settings, CLI settings, and chunking settings.
+  Allows editing RAG settings, CLI settings, chunking settings, and online mode settings.
 
 Features:
   - Interactive menu with categories
@@ -284,6 +250,8 @@ Features:
   - Edit RAG settings (URLs, models, paths, etc.)
   - Edit CLI settings (application name, version, author, model)
   - Edit chunking settings (tokens, overlap, sentence requirements)
+  - Edit online mode settings (mode, CloudFlare API token, account ID, models, API base URL, timeout)
+  - Sensitive data (API token, account ID) masked in display and prompts
   - Saves changes to source appsettings.json file
   - Atomic file writes for safety
 
@@ -291,7 +259,30 @@ Examples:
   2b config                    # Interactive configuration menu
 ```
 
-#### 7. `list` Command ✅ IMPLEMENTED
+#### 6a. `mode` Command ✅ IMPLEMENTED
+
+```bash
+2b mode <mode> [options]
+
+Arguments:
+  <mode>    Mode to set: 'local' (Ollama) or 'online' (CloudFlare)
+
+Description:
+  Quickly switch between local and online modes. Updates the Mode setting in appsettings.json.
+
+Features:
+  - Validates mode input (only "local" or "online" accepted)
+  - Shows current mode if already set (no-op if unchanged)
+  - Updates appsettings.json atomically (temp file + replace)
+  - Colored output showing mode transition
+  - Warning message about needing to restart
+
+Examples:
+  2b mode online                # Switch to online mode (CloudFlare)
+  2b mode local                 # Switch to local mode (Ollama)
+```
+
+#### 6. `list` Command ✅ IMPLEMENTED
 
 ```bash
 2b list [options]
@@ -320,13 +311,13 @@ Examples:
   2b list --folder "C:\Docs" # List from specific folder
 ```
 
-#### 8. `tree` Command ✅ IMPLEMENTED
+#### 7. `tree` Command ✅ IMPLEMENTED
 
 ```bash
 2b tree [options]
 
 Description:
-  Displays the latest RAG sources and chunks from the most recent query or ragchat command
+  Displays the latest RAG sources and chunks from the most recent rag command
   as a hierarchical tree structure. Shows which documents and chunks were used to generate
   the last answer.
 
@@ -336,13 +327,34 @@ Features:
   - Chunks as child nodes with relevance scores
   - Color-coded chunks by relevance (green ≥0.7, yellow ≥0.5, red <0.5)
   - Chunk previews (first 80 characters)
-  - Shows message if no results available (run query or ragchat first)
+  - Shows message if no results available (run rag command first)
 
 Examples:
-  2b query "What is X?"      # Run a query first
-  2b tree                     # Display the sources and chunks used
-  2b ragchat                  # Or use ragchat
-  2b tree                     # Display the latest sources and chunks
+  2b rag                     # Start RAG chat session
+  2b tree                    # Display the sources and chunks used
+```
+
+#### 8. `mode` Command ✅ IMPLEMENTED
+
+```bash
+2b mode <mode> [options]
+
+Arguments:
+  <mode>    Mode to set: 'local' (Ollama) or 'online' (CloudFlare)
+
+Description:
+  Quickly switch between local and online modes. Updates the Mode setting in appsettings.json.
+
+Features:
+  - Validates mode input (only "local" or "online" accepted)
+  - Shows current mode if already set (no-op if unchanged)
+  - Updates appsettings.json atomically (temp file + replace)
+  - Colored output showing mode transition
+  - Warning message about needing to restart
+
+Examples:
+  2b mode online                # Switch to online mode (CloudFlare)
+  2b mode local                 # Switch to local mode (Ollama)
 ```
 
 #### 9. `delete` Command
@@ -544,18 +556,7 @@ Examples:
 
 ### Phase 3: Additional Commands ✅ COMPLETED
 
-1. **✅ Implement `query` command** (Priority 1) - COMPLETED
-
-   - ✅ Extracted RagChatService query logic
-   - ✅ Support one-shot queries
-   - ✅ Human-readable output with Spectre.Console
-   - ✅ Configurable options (--limit, --sources, --no-llm)
-   - ✅ Formatted tables and panels for output
-   - ✅ Animated spinners during search and answer generation (matching ragchat)
-   - ✅ Stores results in RagResultService for tree command
-   - ✅ Registered in DI and CommandApp
-
-2. **✅ Implement `status` command** (Priority 2) - COMPLETED
+1. **✅ Implement `status` command** (Priority 1) - COMPLETED
 
    - ✅ Knowledge base information display
    - ✅ Sync information display
@@ -563,7 +564,7 @@ Examples:
    - ✅ Spectre.Console tables for formatted output
    - ✅ Registered in DI and CommandApp
 
-3. **✅ Implement `ragchat` command** (Priority 3) - COMPLETED
+2. **✅ Implement `rag` command** (Priority 2) - COMPLETED
 
    - ✅ Moved chat loop logic from Program.cs to RagChatCommand
    - ✅ Conversation history support (in-memory)
@@ -575,10 +576,11 @@ Examples:
    - ✅ Enhanced PromptTemplate to include conversation history
    - ✅ Renamed ChatService to RagChatService for clarity
    - ✅ Renamed ChatCommand to RagChatCommand and ChatSettings to RagChatSettings
-   - ✅ Command renamed from 'chat' to 'ragchat' for clarity
+   - ✅ Command renamed from 'chat' to 'ragchat' to 'rag' for clarity
+   - ✅ Stores results in RagResultService for tree command
    - ✅ Registered in DI and CommandApp
 
-4. **✅ Implement `llm` command** (Priority 4) - COMPLETED
+3. **✅ Implement `llm` command** (Priority 3) - COMPLETED
    - ✅ Direct LLM chat without RAG context
    - ✅ Conversation history support (in-memory)
    - ✅ Configurable context window (--context option)
@@ -618,7 +620,7 @@ Examples:
 
    - ✅ Display latest RAG sources and chunks as tree structure
    - ✅ RagResultService to store latest search results
-   - ✅ QueryCommand and RagChatService store results after each query
+   - ✅ RagChatService stores results after each query
    - ✅ Tree visualization with documents and chunks
    - ✅ Color-coded chunks by relevance score
    - ✅ Chunk previews and relevance scores
@@ -679,74 +681,130 @@ Examples:
    - Graceful shutdown
    - Note: Code structure will support this, but implementation deferred
 
-### Phase 7: Online Mode with CloudFlare Workers AI
+### Phase 7: Online Mode with CloudFlare Workers AI ✅ COMPLETED
 
-1. **Implement CloudFlare Workers AI REST API Integration**
+**Simplified Approach: Separate CloudFlare logic into dedicated service, OllamaService delegates based on mode**
 
-   - Create CloudFlareWorkersAIService for REST API communication
-   - Support for embedding generation via CloudFlare Workers AI
-   - Support for text generation (LLM) via CloudFlare Workers AI
-   - Configuration for CloudFlare API endpoint and authentication
-   - Add CloudFlare settings to appsettings.json (API token, account ID, model names)
+1. **Update AppSettings Model** ✅ COMPLETED
 
-2. **Embedding Service Abstraction**
+   - ✅ Add `Mode` property to `RAGSettings` class (string: "local" | "online", default: "local")
+   - ✅ Add `CloudFlareSettings` class with properties:
+     - `ApiToken` (string, masked in UI)
+     - `AccountId` (string, masked in UI)
+     - `EmbeddingModel` (string, default: "@cf/baai/bge-base-en-v1.5")
+     - `GenerationModel` (string, default: "@cf/meta/llama-3-8b-instruct")
+     - `ReRankingModel` (string, optional, for future use)
+     - `ApiBaseUrl` (string, default: "https://api.cloudflare.com/client/v4/")
+     - `TimeoutSeconds` (int, default: 60)
+   - ✅ Add `CloudFlare` property to `RAGSettings` class
+   - ✅ Add `GenerateEndpoint` property to `RAGSettings` for Ollama API endpoint (moved from constant)
 
-   - Create IEmbeddingService interface (or extend existing)
-   - Implement CloudFlareWorkersAIEmbeddingService
-   - Maintain backward compatibility with existing Ollama embedding service
-   - Add configuration option to switch between local (Ollama) and online (CloudFlare) modes
-   - Update DocumentEmbeddingService to use selected embedding provider
+2. **Separate CloudFlare Logic into CloudFlareService** ✅ COMPLETED
 
-3. **Generation Service Abstraction**
+   - ✅ Created `CloudFlareService` class dedicated to CloudFlare Workers AI API interactions
+   - ✅ Uses `IHttpClientFactory` for HttpClient management
+   - ✅ Handles CloudFlare API authentication, request building, and response parsing
+   - ✅ Proper URL encoding for model names in API endpoints
+   - ✅ Error handling and logging for CloudFlare API calls
+   - ✅ Registered in DI container via `AddHttpClient<CloudFlareService>()`
 
-   - Create IGenerationService interface (or extend existing)
-   - Implement CloudFlareWorkersAIGenerationService
-   - Maintain backward compatibility with existing Ollama generation service
-   - Add configuration option to switch between local (Ollama) and online (CloudFlare) modes
-   - Update RagChatService and LlmChatService to use selected generation provider
+3. **Modify OllamaService to Support Both Modes** ✅ COMPLETED
 
-4. **Configuration Management**
+   - ✅ `OllamaService` constructor injects `CloudFlareService` conditionally (when mode is "online")
+   - ✅ `GenerateAnswerAsync(string prompt)` checks mode and delegates:
+     - If `Mode == "local"`: Uses existing Ollama API call
+     - If `Mode == "online"`: Delegates to `CloudFlareService.GenerateAnswerAsync()`
+   - ✅ `GenerateAnswerAsync(string prompt, string model)` similarly delegates based on mode
+   - ✅ Added `GetActualModel()` method to return the actual model that will be used (CloudFlare or Ollama)
+   - ✅ Uses `GenerateEndpoint` from appsettings.json for Ollama API calls
+   - ✅ **Benefits**: Clean separation of concerns, easier to maintain, no changes needed to `RagChatService` or `LlmChatService`
 
-   - Add "Online" mode configuration section to appsettings.json
-   - Support for CloudFlare API token and account ID
-   - Model selection for CloudFlare Workers AI (embedding and generation models)
-   - Mode selection (local/online/hybrid)
-   - Update ConfigCommand to allow editing online mode settings
+4. **Service Registration** ✅ COMPLETED
 
-5. **Re-ranking Support (Future)**
+   - ✅ `CloudFlareService` registered in `ServiceCollectionExtensions` via `AddHttpClient<CloudFlareService>()`
+   - ✅ `OllamaService` continues to be registered as before
+   - ✅ HttpClient registration remains the same (Ollama URL)
+   - ✅ CloudFlare calls use dedicated HttpClient from `IHttpClientFactory`
+
+5. **Configuration Management** ✅ COMPLETED
+
+   - ✅ Configuration exists in appsettings.json (CloudFlare section)
+   - ✅ `ConfigCommand` updated to allow editing online mode settings:
+     - Mode selection (local/online)
+     - CloudFlare API token and account ID (masked in display and prompts)
+     - CloudFlare model selection (generation model)
+     - CloudFlare API base URL and timeout settings
+   - ✅ Environment variable support for sensitive data (ApiToken, AccountId)
+   - ✅ Ollama `GenerateEndpoint` moved to appsettings.json
+   - ✅ CloudFlare `ApiBaseUrl` and `TimeoutSeconds` moved to appsettings.json
+
+6. **Mode Command** ✅ COMPLETED
+
+   - ✅ Created `mode` command for quick switching between local and online modes
+   - ✅ Validates mode input (only "local" or "online" accepted)
+   - ✅ Updates appsettings.json atomically (temp file + replace)
+   - ✅ Shows current mode if already set (no-op if unchanged)
+   - ✅ Colored output showing mode transition
+   - ✅ Warning message about needing to restart
+   - ✅ Registered in DI and CommandApp
+
+7. **UI Improvements** ✅ COMPLETED
+
+   - ✅ `StatusCommand` displays current mode (online/local) and CloudFlare settings
+   - ✅ `RagChatCommand` displays mode and actual model being used
+   - ✅ `LlmCommand` displays mode and actual model being used
+   - ✅ `RagChatService` prompt shows actual model (CloudFlare or Ollama)
+   - ✅ `LlmChatService` prompt shows actual model (CloudFlare or Ollama)
+   - ✅ All commands use `GetActualModel()` to show correct model name
+
+---
+
+### Phase 8: CloudFlare Workers AI Enhancements (Future)
+
+**Note:** Steps 3, 6, 7, 8, 9 from original Phase 7 moved here for future implementation.
+
+1. **Update KernelMemoryService for CloudFlare Embeddings (Optional)**
+
+   - Keep embeddings using Ollama for now (simpler, no custom provider needed)
+   - Document limitation: In "online" mode, text generation uses CloudFlare, but embeddings still use Ollama
+   - Future: Can implement custom CloudFlare embedding provider for KernelMemory if needed
+   - Note: This is acceptable since embeddings are typically done during sync (offline), while generation happens during queries (online)
+
+2. **Re-ranking Support**
 
    - Plan for CloudFlare Workers AI re-ranking integration
-   - Add re-ranking service interface
-   - Configuration for re-ranking model selection
+   - Add re-ranking configuration to CloudFlareSettings
    - Integration with query/ragchat commands for improved search results
+   - Note: Re-ranking would be a separate service/feature, not part of initial implementation
 
-6. **Error Handling & Fallback**
+3. **Enhanced Error Handling & Fallback**
 
-   - Network error handling for REST API calls
-   - Timeout configuration
+   - Enhanced network error handling for CloudFlare REST API calls in `OllamaService`
+   - Timeout configuration for CloudFlare calls
    - Retry logic for transient failures
-   - Fallback to local mode if online mode fails (optional)
-   - Clear error messages for API failures
+   - Clear error messages for API failures (authentication, rate limits, etc.)
+   - Validate CloudFlare credentials on startup if mode is "online"
+   - Optional: Fallback to local mode if online mode fails (future enhancement)
 
-7. **Testing & Validation**
+4. **Testing & Validation**
 
-   - Test CloudFlare Workers AI API integration
-   - Validate embedding quality and compatibility
-   - Validate generation quality and compatibility
-   - Performance testing (latency, throughput)
+   - Test CloudFlare Workers AI API integration via `OllamaService`
+   - Validate generation quality and compatibility (via chat commands)
+   - Performance testing (latency, throughput compared to local mode)
    - Cost monitoring considerations
+   - Test mode switching (local ↔ online) via configuration changes
 
 **Configuration Example:**
 ```json
 {
   "RAG": {
-    "Mode": "online",  // "local" | "online" | "hybrid"
+    "Mode": "online",  // "local" | "online"
     "CloudFlare": {
       "ApiToken": "your-api-token",
       "AccountId": "your-account-id",
       "EmbeddingModel": "@cf/baai/bge-base-en-v1.5",
       "GenerationModel": "@cf/meta/llama-3-8b-instruct",
-      "ReRankingModel": "@cf/..."  // Future
+      "ReRankingModel": ""  // Future: optional re-ranking model
     }
   }
 }
@@ -790,18 +848,23 @@ Commands/:
   ├─> VersionCommand.cs ✅ (uses IOptions<AppSettings>)
   ├─> SyncSettings.cs ✅ (extends BaseSettings with sync-specific options)
   ├─> SyncCommand.cs ✅ (uses DocumentEmbeddingService, SyncState, IKernelMemory)
-  ├─> QuerySettings.cs ✅ (extends BaseSettings with query-specific options)
-  ├─> QueryCommand.cs ✅ (uses IKernelMemory, OllamaService, IOptions<AppSettings>)
   ├─> StatusSettings.cs ✅ (extends BaseSettings)
   ├─> StatusCommand.cs ✅ (uses IKernelMemory, SyncState, IOptions<AppSettings>)
   ├─> RagChatSettings.cs ✅ (extends BaseSettings with --history, --context, --model options)
-  ├─> RagChatCommand.cs ✅ (uses IKernelMemory, RagChatService, IOptions<AppSettings>)
+  ├─> RagChatCommand.cs ✅ (uses IKernelMemory, RagChatService, OllamaService, IOptions<AppSettings>)
   ├─> LlmSettings.cs ✅ (extends BaseSettings with --history, --context, --model options)
-  └─> LlmCommand.cs ✅ (uses LlmChatService, IOptions<AppSettings>)
+  ├─> LlmCommand.cs ✅ (uses LlmChatService, OllamaService, IOptions<AppSettings>)
+  ├─> ConfigCommand.cs ✅ (uses IOptions<AppSettings>)
+  ├─> ListCommand.cs ✅ (uses DocumentEmbeddingService, SyncState, IOptions<AppSettings>)
+  ├─> TreeCommand.cs ✅ (uses RagResultService)
+  ├─> ModeSettings.cs ✅ (extends BaseSettings with mode argument)
+  └─> ModeCommand.cs ✅ (uses IOptions<AppSettings>)
 
 Services/:
   ├─> RagChatService.cs ✅ (RAG-based chat with knowledge base)
-  └─> LlmChatService.cs ✅ (direct LLM chat without RAG)
+  ├─> LlmChatService.cs ✅ (direct LLM chat without RAG)
+  ├─> OllamaService.cs ✅ (text generation - supports both local and online modes)
+  └─> CloudFlareService.cs ✅ (CloudFlare Workers AI API integration)
 
 Models/:
   └─> ConversationMessage.cs ✅ (conversation history model)
@@ -814,9 +877,8 @@ Program.cs
   └─> Spectre.Console.Cli CommandApp
       ├─> VersionCommand ✅ (Phase 1 - COMPLETED)
       ├─> SyncCommand ✅ (Phase 2 - COMPLETED)
-      ├─> QueryCommand ✅ (Phase 3 - COMPLETED)
       ├─> StatusCommand ✅ (Phase 3 - COMPLETED)
-      ├─> RagChatCommand ✅ (Phase 3 - COMPLETED - renamed from ChatCommand)
+      ├─> RagChatCommand ✅ (Phase 3 - COMPLETED - renamed from ChatCommand, command name: 'rag')
       ├─> LlmCommand ✅ (Phase 3 - COMPLETED)
       ├─> ConfigCommand (Phase 4)
       ├─> ListCommand (Phase 4)
@@ -902,7 +964,7 @@ done
 ### Backward Compatibility
 
 - All functionality via explicit commands
-- `2b ragchat` → RAG-based chat with knowledge base
+- `2b rag` → RAG-based chat with knowledge base
 - `2b llm` → Direct LLM chat without RAG
 - All new functionality via commands
 
@@ -1085,9 +1147,8 @@ done
 
 - ✅ **Phase 3: Additional Commands** - COMPLETED
 
-  - ✅ `query` command implemented for one-shot queries
   - ✅ `status` command implemented for system status
-  - ✅ `ragchat` command implemented with conversation history support and model selection (renamed from 'chat')
+  - ✅ `rag` command implemented with conversation history support and model selection (renamed from 'chat' to 'ragchat' to 'rag')
   - ✅ `llm` command implemented for direct LLM chat without RAG
   - ✅ Model configuration added to appsettings.json (CLI.LlmModel)
   - ✅ ChatService renamed to RagChatService for clarity
@@ -1102,7 +1163,6 @@ done
   - ✅ `list` command implemented with tree structure (statistics, file types, documents)
   - ✅ `tree` command implemented to display latest RAG sources and chunks
   - ✅ `RagResultService` created to store latest search results
-  - ✅ `QueryCommand` enhanced with spinner/status indicators matching ragchat
   - ✅ Scoop manifest created for easy installation
   - ✅ Release process documented (RELEASE.md)
   - ⏳ `delete` command pending
@@ -1115,13 +1175,24 @@ done
   - ✅ Fixed list command sync status (timestamp-based logic matching sync command)
   - ✅ Removed --quiet and --verbose options from all commands (simplified codebase, consistent output)
 
-- ⏳ **Phase 7: Online Mode with CloudFlare Workers AI** - NOT STARTED
-  - ⏳ CloudFlare Workers AI REST API integration
-  - ⏳ Embedding service abstraction for online mode
-  - ⏳ Generation service abstraction for online mode
-  - ⏳ Configuration management for online mode
+- ✅ **Phase 7: Online Mode with CloudFlare Workers AI** - COMPLETED
+  - ✅ Update AppSettings model with Mode and CloudFlareSettings
+  - ✅ Separate CloudFlare logic into dedicated CloudFlareService
+  - ✅ Modify OllamaService to check mode and delegate to CloudFlareService when online
+  - ✅ Keep embeddings using Ollama (document limitation)
+  - ✅ Update ConfigCommand for online mode settings (with sensitive data masking)
+  - ✅ Move configuration endpoints to appsettings.json (GenerateEndpoint, ApiBaseUrl, TimeoutSeconds)
+  - ✅ Environment variable support for CloudFlare credentials
+  - ✅ Create mode command for quick mode switching
+  - ✅ Update StatusCommand to display current mode
+  - ✅ Update RagChatCommand, LlmCommand to display mode and actual model
+  - ✅ Update RagChatService and LlmChatService prompts to show actual model being used
+  - ✅ Add GetActualModel() method to OllamaService for accurate model display
+
+- ⏳ **Phase 8: CloudFlare Workers AI Enhancements** - NOT STARTED
+  - ⏳ CloudFlare embeddings support (optional)
   - ⏳ Re-ranking support (future)
-  - ⏳ Error handling and fallback mechanisms
+  - ⏳ Enhanced error handling and fallback mechanisms
   - ⏳ Testing and validation
 
 **Key Achievements:**
@@ -1133,22 +1204,26 @@ done
 - ✅ Sync command fully implemented with file filtering
 - ✅ Query command implemented with LLM integration
 - ✅ Status command implemented with system information
-- ✅ RAG Chat command implemented with conversation history and model selection (renamed to 'ragchat')
+- ✅ RAG Chat command implemented with conversation history and model selection (renamed to 'rag')
 - ✅ LLM command implemented for direct LLM chat without RAG
 - ✅ Conversation history feature (in-memory, configurable context)
 - ✅ Visual status indicators for chat history
 - ✅ Model configuration in appsettings.json (CLI.LlmModel)
-- ✅ Model selection via --model option for both ragchat and llm commands
+- ✅ Model selection via --model option for both rag and llm commands
 - ✅ Service architecture: RagChatService (RAG) and LlmChatService (direct LLM)
 - ✅ OllamaService extended to support custom model parameter
 - ✅ Progress bars and rich console output
 - ✅ Formatted tables and panels using Spectre.Console
 - ✅ Styled prompts and status indicators (showing model names)
-- ✅ Animated spinners in QueryCommand matching ragchat experience
 - ✅ Tree command for visualizing RAG sources and chunks
 - ✅ RagResultService for storing latest search results
 - ✅ Scoop manifest and release process setup
 - ✅ Installation via package manager (Scoop)
 - ✅ Cleanup phase completed (removed emojis, fixed tree command, fixed list command)
 - ✅ Removed --quiet and --verbose options (simplified codebase, ~50 lines of conditional code removed)
+- ✅ Online mode with CloudFlare Workers AI implemented
+- ✅ CloudFlareService created for clean separation of concerns
+- ✅ Mode command for quick mode switching
+- ✅ Model display improvements (shows actual model being used in all commands)
+- ✅ Configuration improvements (endpoints in appsettings.json, sensitive data masking)
 - ⏳ Ready for remaining commands (delete, stats)

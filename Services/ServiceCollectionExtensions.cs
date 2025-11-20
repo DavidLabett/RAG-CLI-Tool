@@ -144,13 +144,13 @@ namespace SecondBrain.Services
             // Register commands in DI container so they can have dependencies injected
             services.AddTransient<VersionCommand>();
             services.AddTransient<SyncCommand>();
-            services.AddTransient<QueryCommand>();
             services.AddTransient<StatusCommand>();
             services.AddTransient<RagChatCommand>();
             services.AddTransient<LlmCommand>();
             services.AddTransient<ConfigCommand>();
             services.AddTransient<ListCommand>();
             services.AddTransient<TreeCommand>();
+            services.AddTransient<ModeCommand>();
             
             // Register CommandApp as a singleton
             services.AddSingleton<CommandApp>(serviceProvider =>
@@ -172,13 +172,10 @@ namespace SecondBrain.Services
                     cliConfig.AddCommand<SyncCommand>("sync")
                         .WithDescription("Sync documents from folder to knowledge base");
                     
-                    cliConfig.AddCommand<QueryCommand>("query")
-                        .WithDescription("Query the knowledge base (one-shot)");
-                    
                     cliConfig.AddCommand<StatusCommand>("status")
                         .WithDescription("Check system status and health");
                     
-                    cliConfig.AddCommand<RagChatCommand>("ragchat")
+                    cliConfig.AddCommand<RagChatCommand>("rag")
                         .WithDescription("Start interactive chat session with RAG knowledge base");
                     
                     cliConfig.AddCommand<LlmCommand>("llm")
@@ -192,6 +189,9 @@ namespace SecondBrain.Services
                     
                     cliConfig.AddCommand<TreeCommand>("tree")
                         .WithDescription("Display the latest RAG sources and chunks as a tree structure");
+                    
+                    cliConfig.AddCommand<ModeCommand>("mode")
+                        .WithDescription("Switch between 'local' (Ollama) and 'online' (CloudFlare) modes");
                     
                     // Validate examples
                     cliConfig.ValidateExamples();

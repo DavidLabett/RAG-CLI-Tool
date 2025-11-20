@@ -30,7 +30,7 @@ public class TreeCommand : Command<TreeSettings>
             if (storedData == null)
             {
                 var panel = new Panel("[yellow]No RAG results available.[/]\n\n" +
-                    "[dim]Run a query or ragchat command first to generate results.[/]")
+                    "[dim]Run a rag command first to generate results.[/]")
                     .Header("[bold yellow]No Results[/]")
                     .Border(BoxBorder.Rounded)
                     .BorderColor(Color.Yellow1)

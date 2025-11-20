@@ -13,6 +13,7 @@ public class RagChatService
     private readonly OllamaService _ollamaService;
     private readonly ILogger<RagChatService> _logger;
     private readonly RagResultService _ragResultService;
+    private readonly AppSettings _appSettings;
 
     public RagChatService(OllamaService ollamaService, IOptions<AppSettings> appSettings, ILogger<RagChatService> logger, RagResultService ragResultService)
     {
@@ -22,11 +23,14 @@ public class RagChatService
         _ollamaService = ollamaService ?? throw new ArgumentNullException(nameof(ollamaService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _ragResultService = ragResultService ?? throw new ArgumentNullException(nameof(ragResultService));
+        _appSettings = appSettings.Value;
     }
 
     public async Task StartChatLoopAsync(IKernelMemory memory, string model, bool enableHistory = false, int contextSize = 5)
     {
         var conversationHistory = new List<ConversationMessage>();
+        // Get the actual model that will be used (may differ in online mode)
+        var actualModel = _ollamaService.GetActualModel(model);
 
         while (true)
         {
@@ -39,7 +43,7 @@ public class RagChatService
             {
                 AnsiConsole.Markup("[yellow]H:off[/] ");
             }
-            AnsiConsole.Markup($"[cyan]RAG[/][dim]({model})[/]: [cyan]>[/] ");
+            AnsiConsole.Markup($"[cyan]RAG[/][dim]({actualModel})[/]: [cyan]>[/] ");
             var userInput = Console.ReadLine(); // userInput is a placeholder - this will be replaced with the actual open ticket
 
             if (string.IsNullOrEmpty(userInput) || userInput.ToLower() == "exit")

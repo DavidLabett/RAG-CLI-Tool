@@ -64,6 +64,7 @@ public class ConfigCommand : Command<ConfigSettings>
                             "• Edit RAG Settings",
                             "• Edit CLI Settings",
                             "• Edit Chunking Settings",
+                            "• Edit Online Mode Settings",
                             "x Exit"
                         }));
 
@@ -85,6 +86,9 @@ public class ConfigCommand : Command<ConfigSettings>
                         break;
                     case "• Edit Chunking Settings":
                         EditChunkingSettings();
+                        break;
+                    case "• Edit Online Mode Settings":
+                        EditOnlineModeSettings();
                         break;
                 }
 
@@ -123,6 +127,16 @@ public class ConfigCommand : Command<ConfigSettings>
         table.AddRow("[bold magenta]RAG[/]", "[dim]Embedding Model[/]", $"[cyan]{ragSettings.EmbeddingModel.Model}[/]");
         table.AddRow("[bold magenta]RAG[/]", "[dim]Min Relevance[/]", $"[white]{ragSettings.MinRelevance:F2}[/]");
         table.AddRow("[bold magenta]RAG[/]", "[dim]Answer Tokens[/]", $"[white]{ragSettings.AnswerTokens}[/]");
+        table.AddRow("[bold magenta]RAG[/]", "[dim]Mode[/]", $"[cyan]{ragSettings.Mode ?? "local"}[/]");
+
+        // CloudFlare Settings (if mode is online)
+        if (ragSettings.Mode?.ToLower() == "online")
+        {
+            var cloudFlare = ragSettings.CloudFlare;
+            table.AddRow("[bold green]CloudFlare[/]", "[dim]Account ID[/]", $"[white]{(string.IsNullOrEmpty(cloudFlare.AccountId) ? "Not set" : "***")}[/]");
+            table.AddRow("[bold green]CloudFlare[/]", "[dim]API Token[/]", $"[white]{(string.IsNullOrEmpty(cloudFlare.ApiToken) ? "Not set" : "***")}[/]");
+            table.AddRow("[bold green]CloudFlare[/]", "[dim]Generation Model[/]", $"[cyan]{cloudFlare.GenerationModel}[/]");
+        }
 
         // Chunking Settings
         table.AddRow("[bold yellow]Chunking[/]", "[dim]Max Tokens Per Chunk[/]", $"[white]{ragSettings.Chunking.MaxTokensPerChunk}[/]");
@@ -407,6 +421,89 @@ public class ConfigCommand : Command<ConfigSettings>
         }
     }
 
+    private void EditOnlineModeSettings()
+    {
+        var ragSettings = _appSettings.Value.RAG;
+        var cloudFlare = ragSettings.CloudFlare;
+        var hasChanges = false;
+
+        while (true)
+        {
+            var mode = ragSettings.Mode ?? "local";
+            var setting = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[bold green]Edit Online Mode Settings[/]")
+                    .PageSize(10)
+                    .AddChoices(new[]
+                    {
+                        $"Mode: [cyan]{mode}[/]",
+                        $"CloudFlare Account ID: [cyan]{(string.IsNullOrEmpty(cloudFlare.AccountId) ? "Not set" : "***")}[/]",
+                        $"CloudFlare API Token: [cyan]{(string.IsNullOrEmpty(cloudFlare.ApiToken) ? "Not set" : "***")}[/]",
+                        $"CloudFlare Generation Model: [cyan]{cloudFlare.GenerationModel}[/]",
+                        "← Back"
+                    }));
+
+            if (setting == "← Back")
+            {
+                break;
+            }
+
+            if (setting.StartsWith("Mode:"))
+            {
+                var choices = new[] { "local", "online" };
+                var defaultIndex = Array.IndexOf(choices, mode);
+                var selectionPrompt = new SelectionPrompt<string>()
+                    .Title("[cyan]Select Mode:[/]")
+                    .AddChoices(choices);
+                if (defaultIndex >= 0)
+                {
+                    selectionPrompt = selectionPrompt.PageSize(10);
+                }
+                var newValue = AnsiConsole.Prompt(selectionPrompt);
+                ragSettings.Mode = newValue;
+                hasChanges = true;
+            }
+            else if (setting.StartsWith("CloudFlare Account ID:"))
+            {
+                var newValue = AnsiConsole.Prompt(
+                    new TextPrompt<string>("[cyan]CloudFlare Account ID:[/]")
+                        .DefaultValue(cloudFlare.AccountId ?? "")
+                        .AllowEmpty());
+                cloudFlare.AccountId = newValue;
+                hasChanges = true;
+            }
+            else if (setting.StartsWith("CloudFlare API Token:"))
+            {
+                var newValue = AnsiConsole.Prompt(
+                    new TextPrompt<string>("[cyan]CloudFlare API Token (leave empty to keep current):[/]")
+                        .Secret()
+                        .AllowEmpty());
+                if (!string.IsNullOrEmpty(newValue))
+                {
+                    cloudFlare.ApiToken = newValue;
+                    hasChanges = true;
+                }
+            }
+            else if (setting.StartsWith("CloudFlare Generation Model:"))
+            {
+                var newValue = AnsiConsole.Prompt(
+                    new TextPrompt<string>("[cyan]CloudFlare Generation Model:[/]")
+                        .DefaultValue(cloudFlare.GenerationModel)
+                        .Validate(model => !string.IsNullOrWhiteSpace(model) ? ValidationResult.Success() : ValidationResult.Error("[red]Model name cannot be empty[/]")));
+                cloudFlare.GenerationModel = newValue;
+                hasChanges = true;
+            }
+
+            AnsiConsole.MarkupLine($"[green]Success[/] Setting updated!");
+            AnsiConsole.WriteLine();
+        }
+
+        if (hasChanges)
+        {
+            SaveConfiguration();
+        }
+    }
+
     private void SaveConfiguration()
     {
         try
@@ -496,6 +593,27 @@ public class ConfigCommand : Command<ConfigSettings>
             chunking["OverlapTokens"] = _appSettings.Value.RAG.Chunking.OverlapTokens;
             chunking["MinCharactersPerSentence"] = _appSettings.Value.RAG.Chunking.MinCharactersPerSentence;
             chunking["MinSentencesPerChunk"] = _appSettings.Value.RAG.Chunking.MinSentencesPerChunk;
+
+            // Update Mode
+            if (!string.IsNullOrEmpty(_appSettings.Value.RAG.Mode))
+                rag["Mode"] = _appSettings.Value.RAG.Mode;
+            else if (rag.ContainsKey("Mode"))
+                rag.Remove("Mode");
+
+            // Update CloudFlare settings
+            if (rag["CloudFlare"] == null)
+            {
+                rag["CloudFlare"] = new JsonObject();
+            }
+            var cloudFlare = rag["CloudFlare"]!.AsObject();
+            cloudFlare["AccountId"] = _appSettings.Value.RAG.CloudFlare.AccountId ?? "";
+            cloudFlare["ApiToken"] = _appSettings.Value.RAG.CloudFlare.ApiToken ?? "";
+            cloudFlare["EmbeddingModel"] = _appSettings.Value.RAG.CloudFlare.EmbeddingModel;
+            cloudFlare["GenerationModel"] = _appSettings.Value.RAG.CloudFlare.GenerationModel;
+            if (!string.IsNullOrEmpty(_appSettings.Value.RAG.CloudFlare.ReRankingModel))
+                cloudFlare["ReRankingModel"] = _appSettings.Value.RAG.CloudFlare.ReRankingModel;
+            else if (cloudFlare.ContainsKey("ReRankingModel"))
+                cloudFlare.Remove("ReRankingModel");
 
             // Update CLI settings
             cli["ApplicationName"] = _appSettings.Value.CLI.ApplicationName;

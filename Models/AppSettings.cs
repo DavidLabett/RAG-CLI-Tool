@@ -45,6 +45,12 @@ public class AppSettings
         
         // Chunking configuration for text partitioning
         public ChunkingSettings Chunking { get; set; } = new();
+
+        // Mode selection: "local" (Ollama) or "online" (CloudFlare Workers AI)
+        public string Mode { get; set; } = "local";
+
+        // CloudFlare Workers AI configuration (used when Mode == "online")
+        public CloudFlareSettings CloudFlare { get; set; } = new();
     }
     
     public class ChunkingSettings
@@ -96,6 +102,35 @@ public class AppSettings
         
         [Range(1, int.MaxValue)]
         public int MaxTokenTotal { get; set; } = 2048;
+    }
+
+    public class CloudFlareSettings
+    {
+        /// <summary>
+        /// CloudFlare API token for authentication
+        /// </summary>
+        public string ApiToken { get; set; } = string.Empty;
+
+        /// <summary>
+        /// CloudFlare account ID
+        /// </summary>
+        public string AccountId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Embedding model for CloudFlare Workers AI (default: "@cf/baai/bge-base-en-v1.5")
+        /// Note: Currently not used - embeddings remain local (Ollama) even in online mode
+        /// </summary>
+        public string EmbeddingModel { get; set; } = "@cf/baai/bge-base-en-v1.5";
+
+        /// <summary>
+        /// Generation model for CloudFlare Workers AI (default: "@cf/meta/llama-3-8b-instruct")
+        /// </summary>
+        public string GenerationModel { get; set; } = "@cf/meta/llama-3-8b-instruct";
+
+        /// <summary>
+        /// Re-ranking model for CloudFlare Workers AI (optional, for future use)
+        /// </summary>
+        public string? ReRankingModel { get; set; }
     }
 
     public class QuartzSettings

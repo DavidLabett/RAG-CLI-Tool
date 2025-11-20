@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace SecondBrain.Commands;
 
 /// <summary>
-/// Settings for the ragchat command
+/// Settings for the rag command
 /// </summary>
 public class RagChatSettings : BaseSettings
 {

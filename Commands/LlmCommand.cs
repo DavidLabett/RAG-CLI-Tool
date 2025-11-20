@@ -15,15 +15,18 @@ public class LlmCommand : AsyncCommand<LlmSettings>
     private readonly ILogger<LlmCommand> _logger;
     private readonly LlmChatService _llmChatService;
     private readonly AppSettings _appSettings;
+    private readonly OllamaService _ollamaService;
 
     public LlmCommand(
         ILogger<LlmCommand> logger,
         LlmChatService llmChatService,
-        IOptions<AppSettings> appSettings)
+        IOptions<AppSettings> appSettings,
+        OllamaService ollamaService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _llmChatService = llmChatService ?? throw new ArgumentNullException(nameof(llmChatService));
         _appSettings = appSettings?.Value ?? throw new ArgumentNullException(nameof(appSettings));
+        _ollamaService = ollamaService ?? throw new ArgumentNullException(nameof(ollamaService));
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, LlmSettings settings)
@@ -35,7 +38,14 @@ public class LlmCommand : AsyncCommand<LlmSettings>
                 ? settings.Model 
                 : _appSettings.CLI.LlmModel;
 
-            AnsiConsole.MarkupLine($"[cyan]Starting direct LLM chat session with model: {model}...[/]");
+            var mode = _appSettings.RAG.Mode?.ToLower() ?? "local";
+            var modeDisplay = mode == "online" ? "[green]online[/]" : "[yellow]local[/]";
+            
+            // Get the actual model that will be used (may differ in online mode)
+            var actualModel = _ollamaService.GetActualModel(model);
+
+            AnsiConsole.MarkupLine($"[cyan]Starting direct LLM chat session with model: {actualModel}...[/]");
+            AnsiConsole.MarkupLine($"[dim]Mode:[/] {modeDisplay}");
             
             // Show history status indicator
             var historyStatus = settings.History 

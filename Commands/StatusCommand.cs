@@ -94,11 +94,23 @@ public class StatusCommand : AsyncCommand<StatusSettings>
         }
 
         // RAG Configuration
+        var mode = ragSettings.Mode?.ToLower() ?? "local";
+        var modeDisplay = mode == "online" ? "[green]online[/]" : "[yellow]local[/]";
+        table.AddRow("[bold magenta]RAG[/]", "[dim]Mode[/]", modeDisplay);
         table.AddRow("[bold magenta]RAG[/]", "[dim]Qdrant URL[/]", $"[white]{ragSettings.QdrantUrl}[/]");
         table.AddRow("[bold magenta]RAG[/]", "[dim]Ollama URL[/]", $"[white]{ragSettings.OllamaUrl}[/]");
         table.AddRow("[bold magenta]RAG[/]", "[dim]Text Model (chat)[/]", $"[cyan]{ragSettings.TextModel.Model}[/]");
         table.AddRow("[bold magenta]RAG[/]", "[dim]Embedding Model[/]", $"[cyan]{ragSettings.EmbeddingModel.Model}[/]");
         table.AddRow("[bold magenta]RAG[/]", "[dim]Min Relevance[/]", $"[white]{ragSettings.MinRelevance:F2}[/]");
+        
+        // CloudFlare Configuration (if online mode)
+        if (mode == "online")
+        {
+            var cloudFlare = ragSettings.CloudFlare;
+            table.AddRow("[bold green]CloudFlare[/]", "[dim]Generation Model[/]", $"[cyan]{cloudFlare.GenerationModel}[/]");
+            table.AddRow("[bold green]CloudFlare[/]", "[dim]Account ID[/]", $"[white]{(string.IsNullOrEmpty(cloudFlare.AccountId) ? "Not set" : "***")}[/]");
+            table.AddRow("[bold green]CloudFlare[/]", "[dim]API Token[/]", $"[white]{(string.IsNullOrEmpty(cloudFlare.ApiToken) ? "Not set" : "***")}[/]");
+        }
 
         // CLI Configuration
         table.AddRow("[bold yellow]CLI[/]", "[dim]Application Name[/]", $"[white]{cliSettings.ApplicationName}[/]");

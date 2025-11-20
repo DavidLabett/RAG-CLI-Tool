@@ -13,6 +13,7 @@ public class LlmChatService
     private readonly OllamaService _ollamaService;
     private readonly ILogger<LlmChatService> _logger;
     private readonly string _ollamaUrl;
+    private readonly AppSettings _appSettings;
 
     public LlmChatService(
         OllamaService ollamaService,
@@ -22,11 +23,14 @@ public class LlmChatService
         _ollamaService = ollamaService ?? throw new ArgumentNullException(nameof(ollamaService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _ollamaUrl = appSettings.Value.RAG.OllamaUrl;
+        _appSettings = appSettings.Value;
     }
 
     public async Task StartChatLoopAsync(string model, bool enableHistory = false, int contextSize = 5)
     {
         var conversationHistory = new List<ConversationMessage>();
+        // Get the actual model that will be used (may differ in online mode)
+        var actualModel = _ollamaService.GetActualModel(model);
 
         while (true)
         {
@@ -39,7 +43,7 @@ public class LlmChatService
             {
                 AnsiConsole.Markup("[yellow]H:off[/] ");
             }
-            AnsiConsole.Markup($"[cyan]LLM[/][dim]({model}):[/] [cyan]>[/] ");
+            AnsiConsole.Markup($"[cyan]LLM[/][dim]({actualModel}):[/] [cyan]>[/] ");
             var userInput = Console.ReadLine();
 
             if (string.IsNullOrEmpty(userInput) || userInput.ToLower() == "exit")

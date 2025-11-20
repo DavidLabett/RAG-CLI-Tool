@@ -22,6 +22,7 @@ namespace SecondBrain
                 var config = new ConfigurationBuilder()
                     .SetBasePath(AppContext.BaseDirectory)
                     .AddJsonFile("appsettings.json")
+                    .AddEnvironmentVariables() // Environment variables override JSON settings
                     .Build();
 
                 var serviceCollection = new ServiceCollection();
