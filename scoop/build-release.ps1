@@ -42,7 +42,7 @@ Write-Host "Calculating hash..." -ForegroundColor Yellow
 $hash = (Get-FileHash $zipPath -Algorithm SHA256).Hash
 
 Write-Host ""
-Write-Host "✓ Build complete!" -ForegroundColor Green
+Write-Host "Build complete!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Release package: $zipPath" -ForegroundColor Cyan
 Write-Host "SHA256 Hash: $hash" -ForegroundColor Cyan
@@ -51,4 +51,6 @@ Write-Host "Update your Scoop manifest with:" -ForegroundColor Yellow
 Write-Host "  - URL: (your release URL)" -ForegroundColor Gray
 Write-Host "  - Hash: $hash" -ForegroundColor Gray
 Write-Host "  - Version: $Version" -ForegroundColor Gray
+Write-Host ""
+Write-Host ""
 

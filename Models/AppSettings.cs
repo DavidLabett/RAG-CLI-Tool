@@ -106,30 +106,10 @@ public class AppSettings
 
     public class CloudFlareSettings
     {
-        /// <summary>
-        /// CloudFlare API token for authentication
-        /// </summary>
         public string ApiToken { get; set; } = string.Empty;
-
-        /// <summary>
-        /// CloudFlare account ID
-        /// </summary>
         public string AccountId { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Embedding model for CloudFlare Workers AI (default: "@cf/baai/bge-base-en-v1.5")
-        /// Note: Currently not used - embeddings remain local (Ollama) even in online mode
-        /// </summary>
         public string EmbeddingModel { get; set; } = "@cf/baai/bge-base-en-v1.5";
-
-        /// <summary>
-        /// Generation model for CloudFlare Workers AI (default: "@cf/meta/llama-3-8b-instruct")
-        /// </summary>
         public string GenerationModel { get; set; } = "@cf/meta/llama-3-8b-instruct";
-
-        /// <summary>
-        /// Re-ranking model for CloudFlare Workers AI (optional, for future use)
-        /// </summary>
         public string? ReRankingModel { get; set; }
     }
 

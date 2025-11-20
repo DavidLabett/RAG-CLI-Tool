@@ -466,11 +466,14 @@ public class ConfigCommand : Command<ConfigSettings>
             else if (setting.StartsWith("CloudFlare Account ID:"))
             {
                 var newValue = AnsiConsole.Prompt(
-                    new TextPrompt<string>("[cyan]CloudFlare Account ID:[/]")
-                        .DefaultValue(cloudFlare.AccountId ?? "")
+                    new TextPrompt<string>("[cyan]CloudFlare Account ID (leave empty to keep current):[/]")
+                        .Secret()
                         .AllowEmpty());
-                cloudFlare.AccountId = newValue;
-                hasChanges = true;
+                if (!string.IsNullOrEmpty(newValue))
+                {
+                    cloudFlare.AccountId = newValue;
+                    hasChanges = true;
+                }
             }
             else if (setting.StartsWith("CloudFlare API Token:"))
             {

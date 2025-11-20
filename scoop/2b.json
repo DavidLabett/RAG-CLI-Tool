@@ -1,12 +1,12 @@
 {
   "version": "1.0.0",
   "description": "Second Brain - RAG Knowledge Base CLI",
-  "homepage": "https://github.com/yourusername/SecondBrain-CLI",
+  "homepage": "https://github.com/DavidLabett/RAG-CLI-Tool",
   "license": "MIT",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/yourusername/SecondBrain-CLI/releases/download/v1.0.0/SecondBrain-1.0.0-win-x64.zip",
-      "hash": "PLACEHOLDER_HASH_HERE",
+      "url": "https://github.com/DavidLabett/RAG-CLI-Tool/releases/download/v1.0.0/SecondBrain-1.0.0-win-x64.zip",
+      "hash": "F120F0C591E38B5B31D97DCAFCF560F5ED1ABBB7339162D6D8120CCE54B19C9C",
       "extract_dir": "SecondBrain-1.0.0-win-x64"
     }
   },
@@ -18,12 +18,12 @@
     ]
   ],
   "checkver": {
-    "github": "yourusername/SecondBrain-CLI"
+    "github": "DavidLabett/RAG-CLI-Tool"
   },
   "autoupdate": {
     "architecture": {
       "64bit": {
-        "url": "https://github.com/yourusername/SecondBrain-CLI/releases/download/v$version/SecondBrain-$version-win-x64.zip"
+        "url": "https://github.com/DavidLabett/RAG-CLI-Tool/releases/download/v$version/SecondBrain-$version-win-x64.zip"
       }
     }
   },
