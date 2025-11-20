@@ -5,7 +5,7 @@
   "license": "MIT",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/DavidLabett/RAG-CLI-Tool/releases/download/v1.0.0/SecondBrain-1.0.0-win-x64.zip",
+      "url": "https://github.com/DavidLabett/RAG-CLI-Tool/releases/download/v.1.0.0/SecondBrain-1.0.0-win-x64.zip",
       "hash": "F120F0C591E38B5B31D97DCAFCF560F5ED1ABBB7339162D6D8120CCE54B19C9C",
       "extract_dir": "SecondBrain-1.0.0-win-x64"
     }
@@ -23,7 +23,7 @@
   "autoupdate": {
     "architecture": {
       "64bit": {
-        "url": "https://github.com/DavidLabett/RAG-CLI-Tool/releases/download/v$version/SecondBrain-$version-win-x64.zip"
+        "url": "https://github.com/DavidLabett/RAG-CLI-Tool/releases/download/v.$version/SecondBrain-$version-win-x64.zip"
       }
     }
   },
