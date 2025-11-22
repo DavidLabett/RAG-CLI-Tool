@@ -4,17 +4,14 @@ using System.Text.Json;
 
 namespace SecondBrain.Services;
 
-/// <summary>
 /// Service to store the latest RAG search results for display in the tree command
 /// Persists to file so results are available across separate command invocations
-/// </summary>
 public class RagResultService
 {
     private readonly string _storageFilePath;
     private readonly ILogger<RagResultService> _logger;
     private readonly object _lock = new object();
 
-    // Serializable data structure for storing results
     public class StoredResultData
     {
         public List<StoredCitation> Results { get; set; } = new();
@@ -40,9 +37,7 @@ public class RagResultService
         _storageFilePath = Path.Combine(appDirectory, "rag-results.json");
     }
 
-    /// <summary>
     /// Store the latest search results to file
-    /// </summary>
     public void StoreLatestResults(SearchResult searchResults)
     {
         lock (_lock)
@@ -62,9 +57,9 @@ public class RagResultService
                     }).ToList()
                 };
 
-                var json = JsonSerializer.Serialize(storedData, new JsonSerializerOptions 
-                { 
-                    WriteIndented = false 
+                var json = JsonSerializer.Serialize(storedData, new JsonSerializerOptions
+                {
+                    WriteIndented = false
                 });
 
                 File.WriteAllText(_storageFilePath, json);
@@ -77,9 +72,7 @@ public class RagResultService
         }
     }
 
-    /// <summary>
     /// Get the stored result data from file
-    /// </summary>
     public StoredResultData? GetStoredData()
     {
         lock (_lock)
@@ -110,26 +103,22 @@ public class RagResultService
         }
     }
 
-    /// <summary>
     /// Get the latest search results from file (for backward compatibility)
     /// Returns null - use GetStoredData() instead
-    /// </summary>
     [Obsolete("Use GetStoredData() instead")]
     public SearchResult? GetLatestResults()
     {
         return null;
     }
 
-    /// <summary>
     /// Check if there are any stored results
-    /// </summary>
     public bool HasResults()
     {
         lock (_lock)
         {
             var storedData = GetStoredData();
-            return storedData != null && 
-                   storedData.Results != null && 
+            return storedData != null &&
+                   storedData.Results != null &&
                    storedData.Results.Any();
         }
     }

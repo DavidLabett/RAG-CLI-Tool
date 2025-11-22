@@ -23,22 +23,17 @@ public class DocumentEmbeddingService
     // Sanitizes document ID to only contain allowed characters (A-Z, a-z, 0-9, '.', '_', '-')
     private string SanitizeDocumentId(string documentId)
     {
-        // Replace invalid characters with underscores
-        // Allowed: A-Z, a-z, 0-9, '.', '_', '-'
         var sanitized = Regex.Replace(documentId, @"[^A-Za-z0-9._-]", "_");
-        
-        // Remove consecutive underscores
+
         sanitized = Regex.Replace(sanitized, @"_+", "_");
-        
-        // Remove leading/trailing underscores
+
         sanitized = sanitized.Trim('_');
-        
-        // Ensure it's not empty
+
         if (string.IsNullOrEmpty(sanitized))
         {
             sanitized = "document";
         }
-        
+
         return sanitized;
     }
 
@@ -57,20 +52,18 @@ public class DocumentEmbeddingService
             var fileName = Path.GetFileName(filePath);
             var fileExtension = Path.GetExtension(filePath).ToLowerInvariant();
             var documentId = SanitizeDocumentId(Path.GetFileNameWithoutExtension(filePath));
-            
-            // Get file size for logging
+
             var fileInfo = new FileInfo(filePath);
             var fileSizeMB = fileInfo.Length / (1024.0 * 1024.0);
 
-            // Show progress with counter if available
             if (totalCount > 0)
             {
-                _logger.LogInformation("[{Current}/{Total}] Starting import: {FileName} ({Size:F2} MB, {Type})", 
+                _logger.LogInformation("[{Current}/{Total}] Starting import: {FileName} ({Size:F2} MB, {Type})",
                     currentIndex, totalCount, fileName, fileSizeMB, fileExtension.ToUpperInvariant());
             }
             else
             {
-                _logger.LogInformation("Starting import: {FileName} ({Size:F2} MB, {Type})", 
+                _logger.LogInformation("Starting import: {FileName} ({Size:F2} MB, {Type})",
                     fileName, fileSizeMB, fileExtension.ToUpperInvariant());
             }
 
@@ -93,12 +86,11 @@ public class DocumentEmbeddingService
             }
             else
             {
-                // For text files, read and import as text
                 _logger.LogInformation("  → Reading text content...");
                 var content = await File.ReadAllTextAsync(filePath);
                 var contentLength = content.Length;
                 _logger.LogInformation("  → Read {Length:N0} characters, generating embeddings...", contentLength);
-                
+
                 await memory.ImportTextAsync(
                     text: content,
                     documentId: documentId,
@@ -123,14 +115,12 @@ public class DocumentEmbeddingService
         }
     }
 
-    // Imports all documents from a directory
     public async Task<int> ImportDocumentsFromFolderAsync(IKernelMemory memory, string folderPath)
     {
         return await ImportDocumentsFromFolderAsync(memory, folderPath, null);
     }
 
     // Imports documents from a directory, optionally filtered by last modified time
-    // Returns the number of files imported
     public async Task<int> ImportDocumentsFromFolderAsync(IKernelMemory memory, string folderPath, DateTime? sinceDateTime, Action<int, int, string>? progressCallback = null)
     {
         try
@@ -145,34 +135,31 @@ public class DocumentEmbeddingService
 
             // Get all PDF files
             var pdfFiles = Directory.GetFiles(folderPath, "*.pdf", SearchOption.TopDirectoryOnly);
-            
-            // Get all text files (common extensions)
+
+            // Get all text files (other extensuions)
             var textFiles = Directory.GetFiles(folderPath, "*.txt", SearchOption.TopDirectoryOnly)
                 .Concat(Directory.GetFiles(folderPath, "*.md", SearchOption.TopDirectoryOnly))
                 .Concat(Directory.GetFiles(folderPath, "*.docx", SearchOption.TopDirectoryOnly));
 
             var allFiles = pdfFiles.Concat(textFiles).ToList();
 
-            // Filter files by last modified time if sinceDateTime is provided
             if (sinceDateTime.HasValue)
             {
                 var originalCount = allFiles.Count;
-                // Ensure UTC comparison and use >= to include files modified at exact same time
                 var sinceUtc = sinceDateTime.Value.Kind == DateTimeKind.Utc ? sinceDateTime.Value : sinceDateTime.Value.ToUniversalTime();
-                
+
                 allFiles = allFiles.Where(file =>
                 {
                     var fileInfo = new FileInfo(file);
-                    // Check both LastWriteTime and CreationTime - if file was copied, CreationTime will be recent
                     // Use the more recent of the two timestamps
-                    var mostRecentTime = fileInfo.LastWriteTimeUtc > fileInfo.CreationTimeUtc 
-                        ? fileInfo.LastWriteTimeUtc 
+                    var mostRecentTime = fileInfo.LastWriteTimeUtc > fileInfo.CreationTimeUtc
+                        ? fileInfo.LastWriteTimeUtc
                         : fileInfo.CreationTimeUtc;
-                    
+
                     return mostRecentTime >= sinceUtc;
                 }).ToList();
-                
-                _logger.LogInformation("Filtered {FilteredCount} file(s) modified since {SinceDateTime} from {TotalCount} total file(s)", 
+
+                _logger.LogInformation("Filtered {FilteredCount} file(s) modified since {SinceDateTime} from {TotalCount} total file(s)",
                     allFiles.Count, sinceDateTime.Value, originalCount);
             }
 
@@ -193,29 +180,24 @@ public class DocumentEmbeddingService
             {
                 var file = allFiles[i];
                 var fileName = Path.GetFileName(file);
-                
-                // Report progress at start of file processing
+
                 progressCallback?.Invoke(i, allFiles.Count, fileName);
-                
+
                 try
                 {
                     await ImportDocumentAsync(memory, file, i + 1, allFiles.Count);
                     successCount++;
-                    
-                    // Report progress after file completes
+
                     progressCallback?.Invoke(i + 1, allFiles.Count, fileName);
                 }
                 catch (Exception ex)
                 {
                     failureCount++;
-                    _logger.LogError(ex, "Failed to import document {Index}/{Total}: {FileName}", 
+                    _logger.LogError(ex, "Failed to import document {Index}/{Total}: {FileName}",
                         i + 1, allFiles.Count, fileName);
-                    // Report progress even on failure
                     progressCallback?.Invoke(i + 1, allFiles.Count, fileName);
-                    // Continue with next document instead of stopping
                 }
-                
-                // Add a separator line between documents (except after the last one)
+
                 if (i < allFiles.Count - 1)
                 {
                     _logger.LogInformation("───────────────────────────────────────────────────────────────────────────────");
@@ -224,10 +206,10 @@ public class DocumentEmbeddingService
 
             var overallDuration = (DateTime.UtcNow - overallStartTime).TotalSeconds;
             _logger.LogInformation("═══════════════════════════════════════════════════════════════════════════════");
-            _logger.LogInformation("Import Summary: {Success} succeeded, {Failed} failed, Total time: {Duration:F1}s", 
+            _logger.LogInformation("Import Summary: {Success} succeeded, {Failed} failed, Total time: {Duration:F1}s",
                 successCount, failureCount, overallDuration);
             _logger.LogInformation("═══════════════════════════════════════════════════════════════════════════════\n");
-            
+
             return successCount;
         }
         catch (Exception ex)

@@ -5,9 +5,7 @@ using Spectre.Console;
 
 namespace SecondBrain.Services;
 
-/// <summary>
 /// Service for direct LLM chat without RAG context
-/// </summary>
 public class LlmChatService
 {
     private readonly OllamaService _ollamaService;
@@ -29,12 +27,10 @@ public class LlmChatService
     public async Task StartChatLoopAsync(string model, bool enableHistory = false, int contextSize = 5)
     {
         var conversationHistory = new List<ConversationMessage>();
-        // Get the actual model that will be used (may differ in online mode)
         var actualModel = _ollamaService.GetActualModel(model);
 
         while (true)
         {
-            // Show history status in prompt using Spectre.Console markup
             if (enableHistory)
             {
                 AnsiConsole.Markup($"[green]H:on[/][dim]|{contextSize}[/] ");
@@ -54,7 +50,6 @@ public class LlmChatService
 
             try
             {
-                // Add user message to history
                 if (enableHistory)
                 {
                     conversationHistory.Add(new ConversationMessage("user", userInput));
@@ -62,7 +57,6 @@ public class LlmChatService
 
                 var answer = await ProcessQueryAsync(userInput, model, enableHistory ? conversationHistory : null, contextSize);
 
-                // Add assistant answer to history
                 if (enableHistory && !string.IsNullOrEmpty(answer))
                 {
                     conversationHistory.Add(new ConversationMessage("assistant", answer));
@@ -78,16 +72,14 @@ public class LlmChatService
     private async Task<string> ProcessQueryAsync(string userInput, string model, List<ConversationMessage>? conversationHistory = null, int contextSize = 5)
     {
 
-        // Get conversation history for context (only last N messages, excluding current user input)
         List<ConversationMessage>? historyForPrompt = null;
         if (conversationHistory != null && conversationHistory.Count > 0)
         {
-            // Get last N messages (excluding the current user input which was just added)
             var messagesToInclude = conversationHistory
                 .TakeLast(contextSize)
                 .Where(m => m.Role == "assistant" || (m.Role == "user" && m != conversationHistory.Last()))
                 .ToList();
-            
+
             if (messagesToInclude.Any())
             {
                 historyForPrompt = messagesToInclude;
@@ -95,8 +87,7 @@ public class LlmChatService
         }
 
         var prompt = BuildDirectPrompt(userInput, historyForPrompt);
-        
-        // Show status while generating answer
+
         var answer = await AnsiConsole.Status()
             .Spinner(Spinner.Known.Dots)
             .SpinnerStyle(Style.Parse("green"))
@@ -106,7 +97,6 @@ public class LlmChatService
                 return await _ollamaService.GenerateAnswerAsync(prompt, model);
             });
 
-        // Display answer in a formatted Spectre.Console panel
         var answerPanel = new Panel(answer)
             .Header("[bold green]LLM Response[/]")
             .Border(BoxBorder.Rounded)
@@ -122,7 +112,7 @@ public class LlmChatService
     private static string BuildDirectPrompt(string userInput, List<ConversationMessage>? conversationHistory = null)
     {
         var historySection = string.Empty;
-        
+
         if (conversationHistory != null && conversationHistory.Any())
         {
             var historyBuilder = new System.Text.StringBuilder();

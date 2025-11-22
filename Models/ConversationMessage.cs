@@ -1,8 +1,5 @@
 namespace SecondBrain.Models;
 
-/// <summary>
-/// Represents a message in a conversation (either user question or assistant answer)
-/// </summary>
 public class ConversationMessage
 {
     public string Role { get; set; } = string.Empty; // "user" or "assistant"

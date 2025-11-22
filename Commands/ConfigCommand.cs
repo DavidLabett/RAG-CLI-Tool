@@ -8,9 +8,7 @@ using System.Text.Json.Nodes;
 
 namespace SecondBrain.Commands;
 
-/// <summary>
 /// Command to manage configuration interactively
-/// </summary>
 public class ConfigCommand : Command<ConfigSettings>
 {
     private readonly IOptions<AppSettings> _appSettings;
@@ -28,7 +26,6 @@ public class ConfigCommand : Command<ConfigSettings>
 
     private string FindConfigFile()
     {
-        // Walk up from base directory to find project root (where .csproj file is)
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null)
         {
@@ -42,8 +39,7 @@ public class ConfigCommand : Command<ConfigSettings>
             }
             directory = directory.Parent;
         }
-        
-        // Fallback to base directory
+
         return Path.Combine(AppContext.BaseDirectory, "appsettings.json");
     }
 
@@ -156,10 +152,10 @@ public class ConfigCommand : Command<ConfigSettings>
             .BorderColor(Color.Cyan1)
             .BorderStyle(Style.Parse("bold cyan"))
             .Padding(1, 1);
-        
+
         AnsiConsole.Write(panel);
         AnsiConsole.WriteLine();
-        
+
         AnsiConsole.Prompt(
             new TextPrompt<string>("[dim]Press Enter to continue...[/]")
                 .AllowEmpty());
@@ -522,7 +518,7 @@ public class ConfigCommand : Command<ConfigSettings>
             // Read the entire JSON file to preserve other sections (Logging, Quartz)
             var jsonContent = File.ReadAllText(_configFilePath);
             var jsonNode = JsonNode.Parse(jsonContent);
-            
+
             if (jsonNode == null)
             {
                 throw new InvalidOperationException("Failed to parse appsettings.json");
@@ -537,7 +533,7 @@ public class ConfigCommand : Command<ConfigSettings>
             }
 
             var appSettings = root["AppSettings"]!.AsObject();
-            
+
             // Ensure RAG and CLI sections exist
             if (appSettings["RAG"] == null)
             {
@@ -558,7 +554,7 @@ public class ConfigCommand : Command<ConfigSettings>
             rag["DocumentFolderPath"] = _appSettings.Value.RAG.DocumentFolderPath;
             rag["AnswerTokens"] = _appSettings.Value.RAG.AnswerTokens;
             rag["MinRelevance"] = _appSettings.Value.RAG.MinRelevance;
-            
+
             if (!string.IsNullOrEmpty(_appSettings.Value.RAG.DefaultLastRun))
                 rag["DefaultLastRun"] = _appSettings.Value.RAG.DefaultLastRun;
             if (!string.IsNullOrEmpty(_appSettings.Value.RAG.StoredLastRun))
@@ -622,12 +618,12 @@ public class ConfigCommand : Command<ConfigSettings>
             cli["ApplicationName"] = _appSettings.Value.CLI.ApplicationName;
             cli["ApplicationVersion"] = _appSettings.Value.CLI.ApplicationVersion;
             cli["LlmModel"] = _appSettings.Value.CLI.LlmModel;
-            
+
             if (!string.IsNullOrEmpty(_appSettings.Value.CLI.Author))
                 cli["Author"] = _appSettings.Value.CLI.Author;
             else if (cli.ContainsKey("Author"))
                 cli.Remove("Author");
-                
+
             if (!string.IsNullOrEmpty(_appSettings.Value.CLI.Description))
                 cli["Description"] = _appSettings.Value.CLI.Description;
             else if (cli.ContainsKey("Description"))
@@ -640,17 +636,16 @@ public class ConfigCommand : Command<ConfigSettings>
             };
 
             var finalJson = jsonNode.ToJsonString(options);
-            
-            // Write to a temporary file first, then replace (atomic operation)
+
+            // Write to a temporary file first, then replace
             var tempFile = _configFilePath + ".tmp";
             File.WriteAllText(tempFile, finalJson);
-            
-            // Verify the temp file was written correctly
+
             if (!File.Exists(tempFile))
             {
                 throw new IOException("Failed to write temporary configuration file");
             }
-            
+
             // Replace the original file
             File.Move(tempFile, _configFilePath, overwrite: true);
 
@@ -663,7 +658,7 @@ public class ConfigCommand : Command<ConfigSettings>
             _logger.LogError(ex, "Error saving configuration to {ConfigPath}: {Message}", _configFilePath, ex.Message);
             AnsiConsole.MarkupLine($"[red]Error[/] Error saving configuration: [red]{ex.Message}[/]");
             AnsiConsole.MarkupLine($"[dim]Target file: {_configFilePath}[/]");
-            
+
             // Clean up temp file if it exists
             var tempFile = _configFilePath + ".tmp";
             if (File.Exists(tempFile))

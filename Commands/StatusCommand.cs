@@ -8,9 +8,7 @@ using SecondBrain.Services;
 
 namespace SecondBrain.Commands;
 
-/// <summary>
 /// Command to check system status and health
-/// </summary>
 public class StatusCommand : AsyncCommand<StatusSettings>
 {
     private readonly IOptions<AppSettings> _appSettings;
@@ -62,7 +60,7 @@ public class StatusCommand : AsyncCommand<StatusSettings>
 
         // Knowledge Base
         table.AddRow("[bold cyan]Knowledge Base[/]", "[dim]Index Name[/]", $"[white]{ragSettings.IndexName}[/]");
-        
+
         // Check index accessibility
         try
         {
@@ -83,7 +81,7 @@ public class StatusCommand : AsyncCommand<StatusSettings>
         {
             var lastRun = _syncState.GetLastRun();
             var hasStored = File.Exists(_appSettings.Value.RAG.StoredLastRun ?? "");
-            
+
             table.AddRow("[bold blue]Sync[/]", "[dim]Last Sync[/]", $"[white]{lastRun:yyyy-MM-dd HH:mm:ss}[/]");
             table.AddRow("[bold blue]Sync[/]", "[dim]State File[/]", hasStored ? "[green]Exists[/]" : "[yellow]warning: Not found[/]");
             table.AddRow("[bold blue]Sync[/]", "[dim]Document Folder[/]", $"[white]{ragSettings.DocumentFolderPath}[/]");
@@ -102,7 +100,7 @@ public class StatusCommand : AsyncCommand<StatusSettings>
         table.AddRow("[bold magenta]RAG[/]", "[dim]Text Model (chat)[/]", $"[cyan]{ragSettings.TextModel.Model}[/]");
         table.AddRow("[bold magenta]RAG[/]", "[dim]Embedding Model[/]", $"[cyan]{ragSettings.EmbeddingModel.Model}[/]");
         table.AddRow("[bold magenta]RAG[/]", "[dim]Min Relevance[/]", $"[white]{ragSettings.MinRelevance:F2}[/]");
-        
+
         // CloudFlare Configuration (if online mode)
         if (mode == "online")
         {
@@ -124,7 +122,7 @@ public class StatusCommand : AsyncCommand<StatusSettings>
             .BorderColor(Color.Cyan1)
             .BorderStyle(Style.Parse("bold cyan"))
             .Padding(1, 1);
-        
+
         AnsiConsole.Write(panel);
         AnsiConsole.WriteLine();
     }

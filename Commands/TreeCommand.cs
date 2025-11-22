@@ -5,9 +5,7 @@ using SecondBrain.Services;
 
 namespace SecondBrain.Commands;
 
-/// <summary>
 /// Command to display the latest RAG sources and chunks as a tree structure
-/// </summary>
 public class TreeCommand : Command<TreeSettings>
 {
     private readonly ILogger<TreeCommand> _logger;
@@ -41,7 +39,6 @@ public class TreeCommand : Command<TreeSettings>
                 return 0;
             }
 
-            // Check if Results is null or empty
             if (storedData.Results == null || !storedData.Results.Any())
             {
                 var panel = new Panel("[yellow]No RAG results available.[/]\n\n" +
@@ -56,7 +53,6 @@ public class TreeCommand : Command<TreeSettings>
                 return 0;
             }
 
-            // Log for debugging
             _logger.LogDebug("Tree command: Found {Count} results", storedData.Results.Count);
 
             DisplaySourcesTree(storedData);
@@ -92,10 +88,10 @@ public class TreeCommand : Command<TreeSettings>
                 {
                     partitionIndex++;
                     var relevanceColor = partition.Relevance >= 0.7 ? "green" : partition.Relevance >= 0.5 ? "yellow" : "red";
-                    var chunkPreview = partition.Text.Length > 80 
-                        ? partition.Text.Substring(0, 80) + "..." 
+                    var chunkPreview = partition.Text.Length > 80
+                        ? partition.Text.Substring(0, 80) + "..."
                         : partition.Text;
-                    
+
                     var chunkNode = documentNode.AddNode(
                         $"[{relevanceColor}]Chunk {partitionIndex}[/] [dim](relevance: {partition.Relevance:F3})[/]");
                     chunkNode.AddNode($"[dim]{chunkPreview}[/]");
@@ -113,7 +109,7 @@ public class TreeCommand : Command<TreeSettings>
             .BorderColor(Color.Cyan1)
             .BorderStyle(Style.Parse("bold cyan"))
             .Padding(1, 1);
-        
+
         AnsiConsole.Write(treePanel);
         AnsiConsole.WriteLine();
     }

@@ -41,24 +41,19 @@ public class OllamaService
             }
 
             // Create HttpClient for CloudFlare API
-            // Try to get IHttpClientFactory from DI, otherwise create a new HttpClient
             var httpClientFactory = serviceProvider?.GetService(typeof(IHttpClientFactory)) as IHttpClientFactory;
             _cloudFlareHttpClient = httpClientFactory?.CreateClient() ?? new HttpClient();
-            // Don't set BaseAddress - we'll construct full URLs manually
-            
             _cloudFlareHttpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {cloudFlareSettings.ApiToken}");
             _cloudFlareHttpClient.Timeout = TimeSpan.FromSeconds(60);
         }
     }
 
-    /// <summary>
     /// Gets the actual model that will be used for generation, based on the current mode.
     /// In online mode, returns CloudFlare GenerationModel; in local mode, returns the provided model or default.
-    /// </summary>
     public string GetActualModel(string? model = null)
     {
         var mode = _appSettings.RAG.Mode?.ToLower() ?? "local";
-        
+
         if (mode == "online")
         {
             return _appSettings.RAG.CloudFlare.GenerationModel;
@@ -71,8 +66,8 @@ public class OllamaService
 
     public async Task<string> GenerateAnswerAsync(string prompt)
     {
-        var model = _appSettings.RAG.Mode?.ToLower() == "online" 
-            ? _appSettings.RAG.CloudFlare.GenerationModel 
+        var model = _appSettings.RAG.Mode?.ToLower() == "online"
+            ? _appSettings.RAG.CloudFlare.GenerationModel
             : _model;
         return await GenerateAnswerAsync(prompt, model);
     }
@@ -80,10 +75,9 @@ public class OllamaService
     public async Task<string> GenerateAnswerAsync(string prompt, string model)
     {
         var mode = _appSettings.RAG.Mode?.ToLower() ?? "local";
-        
+
         if (mode == "online")
         {
-            // In online mode, always use CloudFlare GenerationModel, ignore the passed model
             var cloudFlareModel = _appSettings.RAG.CloudFlare.GenerationModel;
             return await GenerateAnswerWithCloudFlareAsync(prompt, cloudFlareModel);
         }
@@ -117,14 +111,14 @@ public class OllamaService
         });
 
         stopwatch.Stop();
-         // Calculate and log tokens per second
+        // Calculate and log tokens per second
         if (result != null && result.EvalCount > 0)
         {
             var tokensPerSecond = result.EvalCount / (stopwatch.ElapsedMilliseconds / 1000.0);
             _logger.LogInformation(
                 "Ollama generation metrics - Tokens: {EvalCount}, Time: {ElapsedMs}ms, Speed: {TokensPerSec:F2} tokens/sec",
-                result.EvalCount, 
-                stopwatch.ElapsedMilliseconds, 
+                result.EvalCount,
+                stopwatch.ElapsedMilliseconds,
                 tokensPerSecond);
         }
 
@@ -143,8 +137,6 @@ public class OllamaService
 
         try
         {
-            // CloudFlare Workers AI endpoint: https://api.cloudflare.com/client/v4/accounts/{accountId}/ai/run/{model}
-            // Use Uri class to properly construct the URL with path segments
             var baseUri = new Uri($"https://api.cloudflare.com/client/v4/accounts/{cloudFlareSettings.AccountId}/ai/run/");
             var fullUrl = new Uri(baseUri, model).ToString();
 
@@ -159,7 +151,7 @@ public class OllamaService
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _cloudFlareHttpClient.PostAsync(fullUrl, content);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
@@ -229,7 +221,6 @@ public class OllamaService
     }
 
     // CloudFlareResponse class to deserialize response from CloudFlare Workers AI
-    // CloudFlare Workers AI returns: {"result": {"response": "..."}, "success": true}
     private class CloudFlareResponse
     {
         [JsonPropertyName("result")]

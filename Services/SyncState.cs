@@ -20,7 +20,7 @@ namespace SecondBrain.Services
         public DateTime GetLastRun()
         {
             return GetLastRunFromFile(
-                _appSettings.RAG.StoredLastRun??
+                _appSettings.RAG.StoredLastRun ??
                 throw new InvalidOperationException("StoredLastRun is not configured"),
                 _appSettings.RAG.DefaultLastRun ??
                 throw new InvalidOperationException("DefaultLastRun is not configured"),
@@ -69,7 +69,6 @@ namespace SecondBrain.Services
                 throw new ArgumentException("Default date cannot be null or empty", nameof(defaultDate));
             }
 
-            // Try to read from file
             string content = string.Empty;
 
             try

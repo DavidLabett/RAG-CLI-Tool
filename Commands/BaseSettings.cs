@@ -3,9 +3,7 @@ using System.ComponentModel;
 
 namespace SecondBrain.Commands;
 
-/// <summary>
-/// Base settings class for global options that apply to all commands
-/// </summary>
+// Base settings class for global options that apply to all commands
 public class BaseSettings : CommandSettings
 {
     [CommandOption("-c|--config")]

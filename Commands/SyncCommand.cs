@@ -8,9 +8,7 @@ using SecondBrain.Services;
 
 namespace SecondBrain.Commands;
 
-/// <summary>
 /// Command to sync documents from folder to knowledge base
-/// </summary>
 public class SyncCommand : AsyncCommand<SyncSettings>
 {
     private readonly IOptions<AppSettings> _appSettings;
@@ -40,9 +38,8 @@ public class SyncCommand : AsyncCommand<SyncSettings>
     {
         try
         {
-            // Determine folder path (override or from config)
             var folderPath = settings.Folder ?? _appSettings.Value.RAG.DocumentFolderPath;
-            
+
             if (string.IsNullOrWhiteSpace(folderPath))
             {
                 AnsiConsole.MarkupLine("[red]Error:[/] No folder path specified. Use --folder or configure DocumentFolderPath in appsettings.json");
@@ -55,21 +52,18 @@ public class SyncCommand : AsyncCommand<SyncSettings>
                 return 1;
             }
 
-            // Handle --force option
             if (settings.Force)
             {
                 AnsiConsole.MarkupLine("[yellow]Force mode:[/] Will sync all documents regardless of last run time");
             }
 
-            // Handle --dry-run option
             if (settings.DryRun)
             {
                 return await ExecuteDryRunAsync(folderPath, settings);
             }
 
-            // Show sync information
             AnsiConsole.MarkupLine($"[cyan]Syncing documents from:[/] [yellow]{folderPath}[/]");
-            
+
             if (!settings.Force)
             {
                 var lastRun = _syncState.GetLastRun();
@@ -77,7 +71,6 @@ public class SyncCommand : AsyncCommand<SyncSettings>
             }
             AnsiConsole.WriteLine();
 
-            // Perform the sync
             var filesSynced = await ExecuteSyncAsync(folderPath, settings);
 
             if (filesSynced > 0)
@@ -112,26 +105,24 @@ public class SyncCommand : AsyncCommand<SyncSettings>
 
         var allFiles = pdfFiles.Concat(textFiles).ToList();
 
-        // Filter by last run time if not in force mode
         if (!settings.Force)
         {
             var lastRun = _syncState.GetLastRun();
             var originalCount = allFiles.Count;
-            
+
             var lastRunUtc = lastRun.Kind == DateTimeKind.Utc ? lastRun : lastRun.ToUniversalTime();
-            
+
             allFiles = allFiles.Where(file =>
             {
                 var fileInfo = new FileInfo(file);
-                // Check both LastWriteTime and CreationTime - if file was copied, CreationTime will be recent
-                // Use the more recent of the two timestamps
-                var mostRecentTime = fileInfo.LastWriteTimeUtc > fileInfo.CreationTimeUtc 
-                    ? fileInfo.LastWriteTimeUtc 
+                // Check/compare timestamps
+                var mostRecentTime = fileInfo.LastWriteTimeUtc > fileInfo.CreationTimeUtc
+                    ? fileInfo.LastWriteTimeUtc
                     : fileInfo.CreationTimeUtc;
-                
+
                 return mostRecentTime >= lastRunUtc;
             }).ToList();
-            
+
             AnsiConsole.MarkupLine($"[dim]Last sync:[/] {lastRun:yyyy-MM-dd HH:mm:ss}");
             AnsiConsole.MarkupLine($"[dim]Filtering files modified since last sync...[/]");
             AnsiConsole.MarkupLine($"[dim]Found {allFiles.Count} file(s) to sync (from {originalCount} total)[/]\n");
@@ -175,7 +166,7 @@ public class SyncCommand : AsyncCommand<SyncSettings>
             .BorderColor(Color.Cyan1)
             .BorderStyle(Style.Parse("bold cyan"))
             .Padding(1, 1);
-        
+
         AnsiConsole.Write(panel);
         AnsiConsole.MarkupLine($"\n[bold cyan]Total:[/] [white]{allFiles.Count}[/] document(s) would be synced");
 
@@ -184,7 +175,6 @@ public class SyncCommand : AsyncCommand<SyncSettings>
 
     private async Task<int> ExecuteSyncAsync(string folderPath, SyncSettings settings)
     {
-        // Determine the cutoff time for filtering files
         DateTime? sinceDateTime = null;
         if (!settings.Force)
         {
@@ -198,31 +188,26 @@ public class SyncCommand : AsyncCommand<SyncSettings>
             .Concat(Directory.GetFiles(folderPath, "*.docx", SearchOption.TopDirectoryOnly));
         var allFiles = pdfFiles.Concat(textFiles).ToList();
 
-        // Filter by last run time if not in force mode
         if (sinceDateTime.HasValue)
         {
             var sinceUtc = sinceDateTime.Value.Kind == DateTimeKind.Utc ? sinceDateTime.Value : sinceDateTime.Value.ToUniversalTime();
-            
+
             allFiles = allFiles.Where(file =>
             {
                 var fileInfo = new FileInfo(file);
-                // Check both LastWriteTime and CreationTime - if file was copied, CreationTime will be recent
-                // Use the more recent of the two timestamps
-                var mostRecentTime = fileInfo.LastWriteTimeUtc > fileInfo.CreationTimeUtc 
-                    ? fileInfo.LastWriteTimeUtc 
+                var mostRecentTime = fileInfo.LastWriteTimeUtc > fileInfo.CreationTimeUtc
+                    ? fileInfo.LastWriteTimeUtc
                     : fileInfo.CreationTimeUtc;
-                
+
                 return mostRecentTime >= sinceUtc;
             }).ToList();
         }
 
-        // If no files to sync, return early without showing progress bar
         if (allFiles.Count == 0)
         {
             return 0;
         }
 
-        // Use Spectre.Console Progress API for better UX
         int filesSynced = 0;
         await AnsiConsole.Progress()
             .AutoRefresh(true)
@@ -237,16 +222,12 @@ public class SyncCommand : AsyncCommand<SyncSettings>
             })
             .StartAsync(async ctx =>
             {
-                // Create a task for the sync operation with the total number of files
                 var task = ctx.AddTask("[green]Syncing documents[/]", maxValue: allFiles.Count);
 
-                // Progress callback to update the progress bar
                 Action<int, int, string> progressCallback = (current, total, fileName) =>
                 {
-                    // Update task description with current file name
                     task.Description = $"[green]Processing:[/] [cyan]{fileName}[/] [dim]({current}/{total})[/]";
-                    
-                    // Update progress
+
                     task.Value = current;
                 };
 
@@ -254,16 +235,14 @@ public class SyncCommand : AsyncCommand<SyncSettings>
                 try
                 {
                     filesSynced = await _documentEmbeddingService.ImportDocumentsFromFolderAsync(_memory, folderPath, sinceDateTime, progressCallback);
-                    
+
                     // Update last run time if not in force mode and files were synced
                     if (!settings.Force && filesSynced > 0)
                     {
-                        // Use UtcDateTime to ensure we have a proper UTC DateTime
                         var currentRunTime = _timeProvider.GetUtcNow().UtcDateTime;
                         _syncState.SetLastRun(currentRunTime);
                     }
-                    
-                    // Mark task as complete
+
                     task.Value = task.MaxValue;
                     task.Description = "[green]Sync completed[/]";
                 }

@@ -7,9 +7,7 @@ using SecondBrain.Services;
 
 namespace SecondBrain.Commands;
 
-/// <summary>
 /// Command to start an interactive chat session with a direct LLM (without RAG)
-/// </summary>
 public class LlmCommand : AsyncCommand<LlmSettings>
 {
     private readonly ILogger<LlmCommand> _logger;
@@ -34,28 +32,25 @@ public class LlmCommand : AsyncCommand<LlmSettings>
         try
         {
             // Use model from command line if provided, otherwise use configured default
-            var model = !string.IsNullOrWhiteSpace(settings.Model) 
-                ? settings.Model 
+            var model = !string.IsNullOrWhiteSpace(settings.Model)
+                ? settings.Model
                 : _appSettings.CLI.LlmModel;
 
             var mode = _appSettings.RAG.Mode?.ToLower() ?? "local";
             var modeDisplay = mode == "online" ? "[green]online[/]" : "[yellow]local[/]";
-            
-            // Get the actual model that will be used (may differ in online mode)
+
             var actualModel = _ollamaService.GetActualModel(model);
 
             AnsiConsole.MarkupLine($"[cyan]Starting direct LLM chat session with model: {actualModel}...[/]");
             AnsiConsole.MarkupLine($"[dim]Mode:[/] {modeDisplay}");
-            
-            // Show history status indicator
-            var historyStatus = settings.History 
+
+            var historyStatus = settings.History
                 ? $"[green]History:on[/] ([dim]context: {settings.Context} messages[/])"
                 : "[yellow]History:off[/]";
             AnsiConsole.MarkupLine($"[dim]Status:[/] {historyStatus}");
-            
+
             AnsiConsole.MarkupLine("[dim]Type 'exit' or press 'CTRL + C' to end the chat.[/]\n");
 
-            // Start the chat loop with history support
             await _llmChatService.StartChatLoopAsync(model, settings.History, settings.Context);
 
             return 0;

@@ -3,9 +3,6 @@ using System.ComponentModel;
 
 namespace SecondBrain.Commands;
 
-/// <summary>
-/// Settings for the sync command
-/// </summary>
 public class SyncSettings : BaseSettings
 {
     [CommandOption("--folder")]

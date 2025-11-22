@@ -7,9 +7,7 @@ using SecondBrain.Services;
 
 namespace SecondBrain.Commands;
 
-/// <summary>
 /// Command to list all documents and show sync status
-/// </summary>
 public class ListCommand : AsyncCommand<ListSettings>
 {
     private readonly IOptions<AppSettings> _appSettings;
@@ -30,9 +28,8 @@ public class ListCommand : AsyncCommand<ListSettings>
     {
         try
         {
-            // Determine folder path (override or from config)
             var folderPath = settings.Folder ?? _appSettings.Value.RAG.DocumentFolderPath;
-            
+
             if (string.IsNullOrWhiteSpace(folderPath))
             {
                 AnsiConsole.MarkupLine("[red]Error:[/] No folder path specified. Use --folder or configure DocumentFolderPath in appsettings.json");
@@ -75,25 +72,21 @@ public class ListCommand : AsyncCommand<ListSettings>
 
             // Check sync status for each file using timestamp comparison (same as SyncCommand)
             var documentInfo = new List<DocumentInfo>();
-            
+
             AnsiConsole.MarkupLine($"[dim]Last sync:[/] {lastSyncTime:yyyy-MM-dd HH:mm:ss} UTC\n");
-            
+
             foreach (var file in allFiles)
             {
                 var fileName = Path.GetFileName(file);
                 var fileInfo = new FileInfo(file);
                 var fileSize = fileInfo.Length;
-                
-                // Use the same logic as SyncCommand: check both LastWriteTime and CreationTime
-                // Use the more recent of the two timestamps
-                var mostRecentTime = fileInfo.LastWriteTimeUtc > fileInfo.CreationTimeUtc 
-                    ? fileInfo.LastWriteTimeUtc 
+
+                var mostRecentTime = fileInfo.LastWriteTimeUtc > fileInfo.CreationTimeUtc
+                    ? fileInfo.LastWriteTimeUtc
                     : fileInfo.CreationTimeUtc;
-                
-                // File is synced if it was last modified/created before the last sync time
-                // (i.e., it wouldn't be included in a sync operation)
+
                 var isSynced = mostRecentTime < lastSyncTime;
-                
+
                 documentInfo.Add(new DocumentInfo
                 {
                     FileName = fileName,
@@ -103,7 +96,6 @@ public class ListCommand : AsyncCommand<ListSettings>
                 });
             }
 
-            // Display results
             DisplayDocumentList(documentInfo);
 
             return Task.FromResult(0);
@@ -118,22 +110,22 @@ public class ListCommand : AsyncCommand<ListSettings>
 
     private void DisplayDocumentList(List<DocumentInfo> documents)
     {
-        // Sort by size descending for better visualization
+        // Sort by size desc
         var sortedDocs = documents.OrderByDescending(d => d.Size).ToList();
-        
-        // Calculate statistics
+
+        // statistics
         var totalSize = documents.Sum(d => d.Size);
         var syncedCount = documents.Count(d => d.IsSynced);
         var notSyncedCount = documents.Count(d => !d.IsSynced);
         var syncedPercentage = documents.Count > 0 ? (syncedCount * 100.0 / documents.Count) : 0;
-        
+
         // Group documents by file type
         var fileTypeGroups = documents
             .GroupBy(d => Path.GetExtension(d.FileName).ToUpperInvariant())
             .OrderByDescending(g => g.Count())
             .ToList();
 
-        // Color mapping for file types
+        // Color mapping
         var typeColors = new Dictionary<string, Color>
         {
             { ".PDF", Color.Red1 },
@@ -142,21 +134,21 @@ public class ListCommand : AsyncCommand<ListSettings>
             { ".DOCX", Color.Yellow1 }
         };
 
-        // Create tree structure
+        // Tree struct
         var tree = new Tree("[bold cyan]List[/]");
 
-        // Add statistics node
+        // Add statistics
         var statsNode = tree.AddNode($"[bold yellow]Statistics[/]");
         statsNode.AddNode($"[white]Total: {documents.Count} | Size: {FormatSize(totalSize)}[/]");
         statsNode.AddNode($"[green]Synced: {syncedCount} ({syncedPercentage:F1}%)[/]");
         statsNode.AddNode($"[red]Not Synced: {notSyncedCount} ({100 - syncedPercentage:F1}%)[/]");
 
-        // Add file types node
+        // Add file types
         var fileTypesNode = tree.AddNode("[bold magenta]File Types[/]");
         foreach (var group in fileTypeGroups)
         {
             var ext = string.IsNullOrEmpty(group.Key) ? "Unknown" : group.Key;
-            var color = typeColors.TryGetValue(ext, out var c) 
+            var color = typeColors.TryGetValue(ext, out var c)
                 ? (c == Color.Red1 ? "red" : c == Color.Blue1 ? "blue" : c == Color.Green1 ? "green" : c == Color.Yellow1 ? "yellow" : "white")
                 : "white";
             fileTypesNode.AddNode($"[{color}]{ext}[/]: {group.Count()}");
@@ -167,18 +159,18 @@ public class ListCommand : AsyncCommand<ListSettings>
         foreach (var group in fileTypeGroups)
         {
             var ext = string.IsNullOrEmpty(group.Key) ? "Unknown" : group.Key;
-            var color = typeColors.TryGetValue(ext, out var c) 
+            var color = typeColors.TryGetValue(ext, out var c)
                 ? (c == Color.Red1 ? "red" : c == Color.Blue1 ? "blue" : c == Color.Green1 ? "green" : c == Color.Yellow1 ? "yellow" : "white")
                 : "white";
-            
+
             var typeNode = documentsNode.AddNode($"[{color}]{ext}[/] ({group.Count()})");
-            
+
             foreach (var doc in group.OrderByDescending(d => d.Size))
             {
-                var status = doc.IsSynced 
-                    ? "[green]Synced[/]" 
+                var status = doc.IsSynced
+                    ? "[green]Synced[/]"
                     : "[red]Not Synced[/]";
-                
+
                 typeNode.AddNode($"[white]{doc.FileName}[/] [cyan]({FormatSize(doc.Size)})[/] {status}");
             }
         }

@@ -29,12 +29,10 @@ public class RagChatService
     public async Task StartChatLoopAsync(IKernelMemory memory, string model, bool enableHistory = false, int contextSize = 5)
     {
         var conversationHistory = new List<ConversationMessage>();
-        // Get the actual model that will be used (may differ in online mode)
         var actualModel = _ollamaService.GetActualModel(model);
 
         while (true)
         {
-            // Show history status in prompt using Spectre.Console markup
             if (enableHistory)
             {
                 AnsiConsole.Markup($"[green]H:on[/][dim]|{contextSize}[/] ");
@@ -54,7 +52,6 @@ public class RagChatService
 
             try
             {
-                // Add user message to history
                 if (enableHistory)
                 {
                     conversationHistory.Add(new ConversationMessage("user", userInput));
@@ -65,7 +62,6 @@ public class RagChatService
                 // Store results for tree command
                 _ragResultService.StoreLatestResults(searchResults);
 
-                // Add assistant answer to history
                 if (enableHistory && !string.IsNullOrEmpty(answer))
                 {
                     conversationHistory.Add(new ConversationMessage("assistant", answer));
@@ -80,7 +76,6 @@ public class RagChatService
 
     private async Task<(string answer, SearchResult searchResults)> ProcessQueryAsync(IKernelMemory memory, string userInput, List<ConversationMessage>? conversationHistory = null, int contextSize = 5, string? model = null)
     {
-        // Show status while searching database
         var searchResults = await AnsiConsole.Status()
             .Spinner(Spinner.Known.Dots)
             .SpinnerStyle(Style.Parse("cyan"))
@@ -119,7 +114,7 @@ public class RagChatService
         }
         // Send context to LLM
         var retrievedContext = contextBuilder.ToString();
-        
+
         // Get conversation history for context (only last N messages, excluding current user input)
         List<ConversationMessage>? historyForPrompt = null;
         if (conversationHistory != null && conversationHistory.Count > 0)
@@ -129,15 +124,15 @@ public class RagChatService
                 .TakeLast(contextSize)
                 .Where(m => m.Role == "assistant" || (m.Role == "user" && m != conversationHistory.Last()))
                 .ToList();
-            
+
             if (messagesToInclude.Any())
             {
                 historyForPrompt = messagesToInclude;
             }
         }
-        
+
         var customPrompt = PromptTemplate.BuildPrompt(userInput, retrievedContext, historyForPrompt);
-        
+
         // Show status while generating answer
         var answer = await AnsiConsole.Status()
             .Spinner(Spinner.Known.Dots)
@@ -177,13 +172,3 @@ public class RagChatService
         return (answer, searchResults);
     }
 }
-
-// - User Question
-// 1. SearchAsync → Finds relevant documents (Qdrant)
-// 2. Build Context → Extracts document text from results
-// 3. Build Prompt → PromptTemplateService combines:
-//    - Your custom prompt template
-//    - Retrieved context
-//    - User question
-// 4. Call LLM Directly → OllamaService sends to Ollama
-// 5. Display Answer

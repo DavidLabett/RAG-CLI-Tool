@@ -3,9 +3,6 @@ using System.ComponentModel;
 
 namespace SecondBrain.Commands;
 
-/// <summary>
-/// Settings for the llm command
-/// </summary>
 public class LlmSettings : BaseSettings
 {
     [CommandOption("--history")]
